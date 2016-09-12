@@ -15,6 +15,7 @@
       }
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
       .small { font-size: 75%; }
+      .smallright { font-size: 50%; text-align: right; margin-top: 8em; }
       .floatright { float: right; }
     </style>
   </head>
@@ -31,24 +32,28 @@ Jan Ypma
 
 jyp@tradeshift.com
 
+.smallright[
+This presentation: http://jypma.github.io/20160915-jdkio-workshop
+]
+
 ---
 
 # Agenda
 
 - Quick technology revamp
 - Exercises
-- 1. Create a chat web application using akka
-- 2. Add persistence so we don't lose data all the time
-- 3. Add scalability and integration
+  1. Create a chat web application using akka
+  2. Add persistence so we don't lose data all the time
+  3. Add scalability and integration
 - Profit!
 
 ### First things first
-```
-    mkdir workshop-1
-    cd workshop-1
-    wget https://jypma.github.io/presentations/20160915-jdkio-workshop/workshop-1-akka.tgz
-    tar xzvf workshop-1-akka.tgz
-    ./sbt compile  // or just "sbt compile" if installed
+```php
+mkdir workshop-1
+cd workshop-1
+wget "https://jypma.github.io/20160915-jdkio-workshop/workshop-1-akka.tgz"
+tar xzvf workshop-1-akka.tgz
+./sbt compile  //or just "sbt compile" if installed
 ```
 
 ---
@@ -99,6 +104,12 @@ And then, if your're bored:
 - Add validation to incoming messages by implementing `AbstractCommandHandler.getValidationError`
 - Define command and event classes using Google Protobuf (instead of `Serializable`), in `src/main/protobuf`
 - Add event journal API using `EventRoute`, adding akka [Persistence Query](http://doc.akka.io/docs/akka/current/java/persistence-query.html) for cassandra
+
+---
+
+# Wrap-up
+
+- Solutions to all exercises: [https://github.com/jypma/ts-reaktive-examples](https://github.com/jypma/ts-reaktive-examples)
 
     </textarea>
     <script src="remark-latest.min.js"></script>
