@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Reactive workshop</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .small { font-size: 75%; }
+      .floatright { float: right; }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Reactive workshop
+
+
+
+Jan Ypma
+
+jyp@tradeshift.com
+
+---
+
+# Agenda
+
+- Quick technology revamp
+- Exercises
+- 1. Create a chat web application using akka
+- 2. Add persistence so we don't lose data all the time
+- 3. Add scalability and integration
+- Profit!
+
+### First things first
+```
+    mkdir workshop-1
+    cd workshop-1
+    wget https://jypma.github.io/presentations/20160915-jdkio-workshop/workshop-1-akka.tgz
+    tar xzvf workshop-1-akka.tgz
+    ./sbt compile  // or just "sbt compile" if installed
+```
+
+---
+
+# Exercise 1: Actors
+
+First:
+
+- Download the [skeleton](workshop-1-akka.tgz) for exercise 1 and unpack it
+  - Make your changes in the `example-1-akka` directory
+- Create implementation of `ConversationProtocol` that implements chat using plain actors
+
+And then, if your're bored:
+
+- Change `RootRoute` so it reads from files and the HTML becomes hot-reloadable
+- Add web socket (or hanging GET) support to client and server
+- Add authentication
+- Make magic numbers configurable using akka's [config library](https://github.com/typesafehub/config)
+- Make the client beautiful
+
+---
+
+# Exercise 2: Persistence
+
+First:
+
+- Either resume from part 1, or get a fresh [skeleton](workshop-2-persistence.tgz) for exercise 2 and unpack it
+  - Make your changes in the `example-2-persistence` directory
+- Introduce persistence by making `ConversationActor` extend `AbstractPersistentActor`
+- Use the [LevelDB persistence plugin](http://doc.akka.io/docs/akka/current/java/persistence.html#local-leveldb-journal-java)
+
+And then, if your're bored:
+
+- Other things you didn't get to from part 1 ;-)
+
+---
+
+# Exercise 3: Clustering and type safety through ts-reaktive
+
+- Either resume from part 2, or get a fresh [skeleton](workshop-3-reaktive.tgz) for exercise 3 and unpack it
+  - Make your changes in the `example-3-reaktive` directory
+- Refactor `ConversationActor` to be a `AbstractStatefulPersistentActor`
+- Add [clustering support](http://doc.akka.io/docs/akka/current/java/cluster-usage.html)
+- Switch to the [Cassandra persistence plugin](https://github.com/akka/akka-persistence-cassandra)
+
+And then, if your're bored:
+
+- Add validation to incoming messages by implementing `AbstractCommandHandler.getValidationError`
+- Define command and event classes using Google Protobuf (instead of `Serializable`), in `src/main/protobuf`
+- Add event journal API using `EventRoute`, adding akka [Persistence Query](http://doc.akka.io/docs/akka/current/java/persistence-query.html) for cassandra
+
+    </textarea>
+    <script src="remark-latest.min.js"></script>
+    <script>
+      var slideshow = remark.create({
+          highlightLanguage: "java",
+          highlightLines: true
+      });
+    </script>
+</html>
