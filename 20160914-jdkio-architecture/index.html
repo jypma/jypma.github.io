@@ -170,7 +170,7 @@ This presentation: http://jypma.github.io/20160914-jdkio-architecture
 
 - **Actor** is an entity that responds only to messages by
   - sending messages to other actors
-  - creating other, child, actors
+  - creating other (child) actors
   - adjusting its behaviour
 
 - *Akka* is a toolkit for writing actors in Java
@@ -457,7 +457,7 @@ public class ConversationActor extends AbstractStatefulPersistentActor<
 
 ---
 
-# Stateful persistent actor 
+# Independent state class
 
 ```
 public class ConversationState extends AbstractState<
@@ -480,7 +480,30 @@ public class ConversationState extends AbstractState<
 }
 ```
 
-- Immutable state class is trivially unit testable (compared to actor)
+- Plain old Java class, hence easily unit testable (compared to actor)
+
+---
+
+# Command handler example
+
+```
+public class PostMessageHandler extends ConversationActor.Handler {
+    @Override
+    public Seq<ConversationEvent> getEventsToEmit() {
+        return Vector.of(new ConversationEvent.MessagePosted(
+            ConversationCommand.PostMessage.class.cast(cmd).getMessage()));
+    }
+
+    @Override
+    public Object getReply(Seq<ConversationEvent> emittedEvents, 
+                           long lastSequenceNr) {
+        return Done.getInstance();
+    }
+}
+```
+
+- Plain old Java class, hence easily unit testable (compared to actor)
+- Behaviour of different commands separated into different classes
 
 ---
 
