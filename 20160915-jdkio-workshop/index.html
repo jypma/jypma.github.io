@@ -15,7 +15,7 @@
       }
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
       .small { font-size: 75%; }
-      .smallright { font-size: 50%; text-align: right; margin-top: 8em; }
+      .smallright { font-size: 90%; text-align: right; margin-top: 8em; }
       .floatright { float: right; }
     </style>
   </head>
@@ -376,6 +376,25 @@ final CompletionStage<Done> done = numbers.runWith(print, materializer);
 ```
 ---
 
+# Exercise project structure
+
+- Each tgz contains a multi-module SBT project
+- All but one of the modules will be empty
+- That's the module you'll be working on
+
+### SBT primer
+
+- Run a project: `sbt "project example-1-akka" "run arg1 arg2"`
+- Create eclipse project files: `sbt eclipse`
+- Import into IntelliJ: just import, but set Java to level 8
+
+
+- Why SBT?
+  - Solid support for protobuf, docker
+  - We got tired of writing xml
+  
+---
+
 # Exercise 1: Actors
 
 First:
@@ -504,6 +523,10 @@ bin/cassandra
 # Wrap-up
 
 - Solutions to all exercises: [https://github.com/jypma/ts-reaktive-examples](https://github.com/jypma/ts-reaktive-examples)
+
+- Questions, comments?
+  - jyp@tradeshift.com
+  - `https://gitter.im/akka/akka` (`@jypma`)
 
     </textarea>
     <script src="remark-latest.min.js"></script>
