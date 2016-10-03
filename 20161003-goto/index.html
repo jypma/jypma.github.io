@@ -23,7 +23,19 @@
          background-size: 100%; 
       }
       .remark-slide-content {
-      
+         color: #ffffff;
+         text-shadow: 1px 1px 2px rgba(0,0,0, 0.5);
+      }
+      .center img {
+         background: rgba(255,255,255,0.3);
+         border: 2px solid rgba(0,100,200,0.7);
+      }
+      .floatright img {
+         background: rgba(255,255,255,0.3);
+         border: 2px solid rgba(0,100,200,0.7);      
+      }
+      pre {
+         text-shadow: none;
       }
     </style>
   </head>
@@ -31,14 +43,11 @@
     <textarea id="source">
 
 background-image: url(01_Session_introslide_16.9.png)
+layout:true
 
 ---
 
-background-image: url(02_Click_engage_to_rate_16.9.png)
-
----
-
-class: animated, slideInRight, center, middle
+class: center, middle
 
 # Disruptive Development 
 
@@ -48,6 +57,11 @@ using Reactive Event-Sourced Systems
 Jan Ypma
 
 jyp@tradeshift.com
+
+
+---
+
+background-image: url(02_Click_engage_to_rate_16.9.png)
 
 ---
 
@@ -227,8 +241,7 @@ public class PongActor extends UntypedActor {
 public class Initialize {}
 public class PingActor extends AbstractActor {
     private int counter = 0;
-    private ActorRef pongActor = getContext().actorOf(
-        Props.create(PongActor.class), "pongActor");
+    private ActorRef pongActor = getContext().actorOf(Props.create(PongActor.class), "pongActor");
     {
         receive(ReceiveBuilder
             .match(Initialize.class, msg -> {
@@ -302,6 +315,7 @@ public class ChatActor extends AbstractPersistentActor {
 
 ---
 
+# Akka persistence
 
 ```
 public class ChatActor extends AbstractPersistentActor {
@@ -432,11 +446,11 @@ proxy.tell(new ChatMessage(
 - Introduce a single base class for all commands
 
 ```
-public abstract class ConversationCommand {}
+public abstract class ChatCommand {}
 
-public class GetMessageList extends ConversationCommand {}
+public class GetMessageList extends ChatCommand {}
 
-public class PostMessage extends ConversationCommand {
+public class PostMessage extends ChatCommand {
     private final String message;
     
     public PostMessage(String message) {
@@ -456,9 +470,9 @@ public class PostMessage extends ConversationCommand {
 - Introduce a single base class for all events
 
 ```
-public abstract class ConversationEvent {}
+public abstract class ChatEvent {}
 
-public class MessagePosted extends ConversationEvent {
+public class MessagePosted extends ChatEvent {
     private final String message;
 
     public MessagePosted(String message) {
@@ -477,18 +491,17 @@ public class MessagePosted extends ConversationEvent {
 # Independent state class
 
 ```
-public class ConversationState extends AbstractState<
-    ConversationEvent, ConversationState> {
+public class ChatState extends AbstractState<ChatEvent, ChatState> {
     
-    public static final ConversationState EMPTY = 
-        new ConversationState(Vector.empty());
+    public static final ChatState EMPTY = 
+        new ChatState(Vector.empty());
     
     private final Seq<String> messages;
     
     @Override
-    public ConversationState apply(ConversationEvent event) {
+    public ChatState apply(ChatEvent event) {
         if (event instanceof MessagePosted) {
-            return new ConversationState(messages.append(
+            return new ChatState(messages.append(
                 MessagePosted.class.cast(event).getMessage()));
         } else {
             return this;
@@ -504,45 +517,44 @@ public class ConversationState extends AbstractState<
 # Stateful persistent actor 
 
 ```
-public class ConversationActor extends AbstractStatefulPersistentActor<
-    ConversationCommand, ConversationEvent, ConversationState> {
+public class ChatActor extends AbstractStatefulPersistentActor<
+    ChatCommand, ChatEvent, ChatState> {
     
     public static abstract class Handler extends AbstractCommandHandler<
-        ConversationCommand, ConversationEvent, ConversationState> { }
+        ChatCommand, ChatEvent, ChatState> { }
     
     @Override
-    protected ConversationState initialState() {
-        return ConversationState.EMPTY;
+    protected ChatState initialState() {
+        return ChatState.EMPTY;
     }
     
     @Override
-    protected PartialFunction<ConversationCommand,Handler> applyCommand() {
-        return new PFBuilder<ConversationCommand,Handler>()
-            .match(ConversationCommand.GetMessageList.class, cmd -> 
+    protected PartialFunction<ChatCommand,Handler> applyCommand() {
+        return new PFBuilder<ChatCommand,Handler>()
+            .match(ChatCommand.GetMessageList.class, cmd -> 
                 new GetMessageListHandler(getState(), cmd))
-            .match(ConversationCommand.PostMessage.class, cmd -> 
+            .match(ChatCommand.PostMessage.class, cmd -> 
                 new PostMessageHandler(getState(), cmd))
             .build();
-    }    
-}
+}   }    
 ```
 
-- Functionality pushed out to `ConversationState` and `*Handler`
+- Business logic pushed out to `ChatState` and `*Handler`
 
 ---
 
 # Command handler example
 
 ```
-public class PostMessageHandler extends ConversationActor.Handler {
+public class PostMessageHandler extends ChatActor.Handler {
     @Override
-    public Seq<ConversationEvent> getEventsToEmit() {
-        return Vector.of(new ConversationEvent.MessagePosted(
-            ConversationCommand.PostMessage.class.cast(cmd).getMessage()));
+    public Seq<ChatEvent> getEventsToEmit() {
+        return Vector.of(new ChatEvent.MessagePosted(
+            ChatCommand.PostMessage.class.cast(cmd).getMessage()));
     }
 
     @Override
-    public Object getReply(Seq<ConversationEvent> emittedEvents, 
+    public Object getReply(Seq<ChatEvent> emittedEvents, 
                            long lastSequenceNr) {
         return Done.getInstance();
     }
@@ -598,7 +610,7 @@ Transfer-Encoding: chunked
 - Scalable development: check
 
 - We're not quite there yet
-  - Akka, cassandra and the reaktive combo still under refactoring
+  - Akka, cassandra and the reaktive combo in active development
   - Attitude of _I've done Spring for 10+ years successfully, why would I learn this_
   - The proof is in more pudding
 
@@ -606,7 +618,7 @@ Transfer-Encoding: chunked
   - Get:  [http://akka.io/](http://akka.io/)
   - Read: [http://doc.akka.io/docs/akka/current/java.html](http://doc.akka.io/docs/akka/current/java.html)
   - Chat: [https://gitter.im/akka/akka](https://gitter.im/akka/akka)
-  - Hack: [https://github.com/Tradeshift/ts-reaktive/](https://github.com/Tradeshift/ts-reaktive/)
+  - Hack: [https://github.com/Tradeshift/ts-reaktive/](https://github.com/Tradeshift/ts-reaktive/) and [https://github.com/jypma/ts-reaktive-examples/](https://github.com/jypma/ts-reaktive-examples/) 
 
 ---
 
