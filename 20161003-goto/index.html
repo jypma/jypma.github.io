@@ -37,6 +37,9 @@
       pre {
          text-shadow: none;
       }
+      a {
+        color: #ccccff;
+      }
       @media print {
       .remark-slide-content {
         text-shadow: none;
@@ -150,6 +153,7 @@ background-image: url(02_Click_engage_to_rate_16.9.png)
 - Enter the buzzwords
   - Let it crash [2003, Amstrong]
   - Micro-services [2005, Rodgers]
+  - The Reactive Manifesto [2013, Bonér, Farley, Kuhn, Thompson]
   - Self-contained systems [2015, [scs-architecture.org](http://scs-architecture.org)]
 
 ---
@@ -244,17 +248,16 @@ public class PongActor extends UntypedActor {
 
 ```
 public class Initialize {}
+
 public class PingActor extends AbstractActor {
     private int counter = 0;
     private ActorRef pongActor = getContext().actorOf(Props.create(PongActor.class), "pongActor");
     {
         receive(ReceiveBuilder
             .match(Initialize.class, msg -> {
-                System.out.println("In PingActor - starting ping-pong");
                 pongActor.tell("ping", getSelf());
             })
             .match(String.class, msg -> {
-                System.out.println("In PingActor - received message: " + message);
                 counter += 1;
                 if (counter == 3) {
                     getContext().system().shutdown();
