@@ -42,12 +42,12 @@ This presentation: http://jypma.github.io/20161025-ts-workshop
 
 - Four Java concurrency models .small[[0:30]]
 - Exercises
-  1. Create a chat web application using akka .small[[1:00]]
-  2. Add persistence so we don't lose data all the time .small[[1:00]]
+  1. Create a chat web application using akka
+  2. Add persistence so we don't lose data all the time 
   
 - Lunch!
   
-  3. Add scalability and integration .small[[1:00]]
+  3. Add scalability and integration
   4. Streaming integration
   
 - Profit!
@@ -133,7 +133,7 @@ http.request(GET("/tweets"))
 
 ---
 
-# Futures and callbacks
+# 2. Futures and callbacks
 
 Advantages
 - Simple to grasp
@@ -499,6 +499,32 @@ And then, if your're bored:
 
 ---
 
+# Event sourcing
+
+.center[![Event sourcing](eventsource.svg)]
+
+- System considers an append-only **Event journal** the only source of truth
+- **Aggregate** is one unit of information to which (and only which) an event atomically applies
+- Events  have a guaranteed order, but only within an aggregate
+
+---
+
+# Event sourcing
+
+- Nice scalability properties
+  - Each aggregate can process changes independently
+- All information that spans >1 aggregate is materialized using *event listeners*
+
+- Traditionally only applied inside a system 
+  - Synchronous APIs only ("_get customer history_")
+  
+- Why not expose event stream itself?
+  - Eventual consistency
+  - Latency implications
+  - Security implications
+
+---
+
 # Akka persistence
 
 - Framework to do event sourcing using actors
@@ -717,9 +743,25 @@ akka.persistence.journal.plugin = "akka.persistence.journal.leveldb"
 
 ---
 
-# Immutability: Javaslang
+# Immutability
 
-TODO
+- Command, event and state classes are best kept immutable
+- Challenge to use built-in `Map`, `List` and `Set`
+    * Interfaces declare and embrace mutability
+    * Implementing data structures are not [_persistent_](https://en.wikipedia.org/wiki/Persistent_data_structure)
+ 
+- Serializable DTO's: `protobuf`
+    * Cross-platform IDL, Java code generator creates immutable classes
+    * Very efficient binary representation and nice versioning
+    
+- Everything else: `javaslang.io`
+    * Immutable, persistent collection classes focused on Java 8
+    * Rich lambda-based combinator DSL
+
+```
+  Seq<Integer> ints = Vector.empty();
+  ints = ints.append(42);
+```
 
 ---
 
@@ -757,13 +799,13 @@ TODO
 - `MessageExtractor` informs cluster sharding where a particular message should go
 
 ```
-class ChatMessage { UUID conversation; String msg; }
+public abstract class ChatCommand { UUID conversation; }
 
-class MyMessageExtractor implements MessageExtractor {
+class ChatMessageExtractor implements MessageExtractor {
     private final int numberOfShards = 256;
     
     @Override public String entityId(Object command) {
-        return ChatMessage.cast(command).conversation.toString();
+        return ChatCommand.cast(command).conversation.toString();
     }
 
     @Override public String shardId(Object command) {
@@ -771,7 +813,7 @@ class MyMessageExtractor implements MessageExtractor {
     }
     
     @Override public Object entityMessage(Object command) {
-        return ChatMessage.cast(command).msg;
+        return command;
     }
 }
 
@@ -797,7 +839,7 @@ ActorRef proxy = ClusterSharding.get(system).start(
             ClusterShardingSettings.create(system), 
             new MyMessageExtractor());
 
-proxy.tell(new ChatMessage(
+proxy.tell(new ChatCommand.PostMessage(
   UUID.fromString("67c67d28-4719-4bf9-bfe6-3944ed961a60"),
   "hello!"));
 ```
@@ -806,7 +848,21 @@ proxy.tell(new ChatMessage(
 
 # ts-reaktive: Clustering for AbstractPersistentStatefulActor
 
-TODO explain PersistentStatefulActorSharding
+```
+public class PersistentActorSharding<C> {
+    PersistentActorSharding(Props props, String persistenceIdPrefix,
+        Function<C, String> entityIdForCommand, int numberOfShards) { ... }
+    
+    public ActorRef shardRegion(ActorSystem system) { ... }
+}
+
+public static final PersistentActorSharding<ConversationCommand> sharding =
+    PersistentActorSharding.of(Props.create(ChatActor.class), "conversation", 
+                               ConversationCommand::getConversationId);
+```
+- Implements sensible sharding defaults
+    - Fixed shard allocation per entityId hashcode
+- No message unwrapping (transparent proxy)
 
 ---
 
@@ -886,7 +942,6 @@ class RunnableGraph<M> {
 }
 ```
 
-
 ---
 
 # Reusable pieces
@@ -936,7 +991,22 @@ final CompletionStage<Done> done = numbers
 
 ---
 
-# TODO akka persistence query
+# Akka persistence query
+
+- Query part of (or the whole) event journal in various ways
+- Each query type defined by a Java interface
+- We'll be using `EventsByTagQuery`: all events, across aggregates, since a given timestamp
+
+```
+interface EventsByTagQuery {
+    Source<EventEnvelope, NotUsed> eventsByTag(String tag, Long offset); 
+}
+
+class EventEnvelope {
+    Long offset; String persistenceId; Long sequenceNr; Object event
+}
+```
+- The source will return historic events, catching up to and resuming with real-time
 
 ---
 
@@ -973,8 +1043,6 @@ Optional extras
 
 # TODO present about tsreaktive-marshal here
   TODO add javadoc to ALL protocol combinator factory methods
-
-
 
 ---
 
