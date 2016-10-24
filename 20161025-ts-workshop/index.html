@@ -233,7 +233,7 @@ public class PingActor extends AbstractActor {
 
 ---
 
-# Actor ping ping
+# Actor ping pong
 
 ```
 public static void main() {
@@ -296,19 +296,18 @@ Disadvantages
 - It's completely up to the stage when and how to respond to arriving elements
 - All built-in graph stages embrace _backpressure_ and _bounded processing_
 
+.floatright[![Types](graphtypes.svg)]
+
 #### Mostly used graph stages
 - `Source<T, M>` has one outlet of type `T`
 - `Sink<T, M>` has one inlet of type `T` 
 - `Flow<A, B, M>` has one inlet of type `A` and one outlet of type `B`
 - `RunnableGraph<M>` has no inlets or outlets
 
-#### Reactive streams
-- Akka is a reactive streams implementation (just like `RxJava` and others)
-- You typically don't interact in terms of _publisher_ and _subscriber_ directly
-
 ---
 
 # Hello, streams
+![Graph](hellostreams.svg)
 
 ```
 final ActorSystem system = ActorSystem.create("QuickStart");

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="143.28952mm"
+   height="65.639877mm"
+   viewBox="0 0 507.71877 232.58224"
+   id="svg31080"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="runnablegraph.svg">
+  <defs
+     id="defs31082">
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path4277"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="250.07386"
+     inkscape:cy="159.07354"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="5"
+     fit-margin-left="5"
+     fit-margin-right="5"
+     fit-margin-bottom="5"
+     inkscape:window-width="1920"
+     inkscape:window-height="1020"
+     inkscape:window-x="0"
+     inkscape:window-y="403"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata31085">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-3.2120356,-400.35364)">
+    <rect
+       style="fill:#f5f8fb;fill-opacity:1;stroke:#000000;stroke-width:1.15964377;stroke-miterlimit:4;stroke-dasharray:1.15964375, 2.31928749;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4201"
+       width="388.83212"
+       height="113.12507"
+       x="40.30759"
+       y="440.74573" />
+    <rect
+       style="fill:#f9fff0;fill-opacity:1;stroke:#000000;stroke-width:0.77608812;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect31764"
+       width="125.01627"
+       height="29.045355"
+       x="41.005375"
+       y="441.16635"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:15.94259262px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="101.17212"
+       y="459.69229"
+       id="text8032-6"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         x="101.17212"
+         y="459.69229"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bitstream Vera Sans Mono';-inkscape-font-specification:'Bitstream Vera Sans Mono';text-align:center;text-anchor:middle;font-size:13.75px"
+         id="tspan8036-4">RunnableGraph</tspan></text>
+    <rect
+       style="fill:#f5f8fb;fill-opacity:1;stroke:#000000;stroke-width:1.12111902;stroke-miterlimit:4;stroke-dasharray:1.12111902,2.24223804;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4201-0"
+       width="152.33673"
+       height="50.375916"
+       x="63.666794"
+       y="487.28723" />
+    <rect
+       style="fill:#f9fff0;fill-opacity:1;stroke:#000000;stroke-width:0.79887593;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect31764-2"
+       width="132.56963"
+       height="29.022568"
+       x="64.821205"
+       y="488.16449"
+       ry="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:15.94259262px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="130.97655"
+       y="506.67905"
+       id="text8032-6-9"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         x="130.97655"
+         y="506.67905"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.75px;font-family:'Bitstream Vera Sans Mono';-inkscape-font-specification:'Bitstream Vera Sans Mono';text-align:center;text-anchor:middle"
+         id="tspan8036-4-4">Source&lt;Integer&gt;</tspan></text>
+    <rect
+       style="fill:#f2fef2;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4229"
+       width="8.586297"
+       height="8.586297"
+       x="212.31363"
+       y="522.32416" />
+    <rect
+       y="487.28723"
+       x="250.54501"
+       height="50.375916"
+       width="152.33673"
+       id="rect4252"
+       style="fill:#f5f8fb;fill-opacity:1;stroke:#000000;stroke-width:1.12111902;stroke-miterlimit:4;stroke-dasharray:1.12111902,2.24223804;stroke-dashoffset:0;stroke-opacity:1" />
+    <rect
+       ry="0"
+       y="488.15155"
+       x="251.68649"
+       height="29.048447"
+       width="124.00921"
+       id="rect4254"
+       style="fill:#f9fff0;fill-opacity:1;stroke:#000000;stroke-width:0.77299702;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text4256"
+       y="506.67905"
+       x="314.82431"
+       style="font-style:normal;font-weight:normal;font-size:15.94259262px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       xml:space="preserve"><tspan
+         id="tspan4258"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.75px;font-family:'Bitstream Vera Sans Mono';-inkscape-font-specification:'Bitstream Vera Sans Mono';text-align:center;text-anchor:middle"
+         y="506.67905"
+         x="314.82431"
+         sodipodi:role="line">Sink&lt;Integer&gt;</tspan></text>
+    <rect
+       y="522.32416"
+       x="246.15373"
+       height="8.586297"
+       width="8.586297"
+       id="rect4260"
+       style="fill:#fef5f2;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="m 220.71204,526.32874 24.64286,0"
+       id="path4262"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>
