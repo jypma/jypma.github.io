@@ -40,12 +40,12 @@ This presentation: http://jypma.github.io/20161025-ts-workshop
 
 # Today's agenda
 
-- Four Java concurrency models .small[[0:30]]
+- Four Java concurrency models .small[[9:30]]
 - Exercises
-  1. Create a chat web application using akka
-  2. Add persistence so we don't lose data all the time 
-  3. Add scalability and integration
-  4. Streaming integration
+  1. Create a chat web application using akka .small[[10:30]]
+  2. Add persistence so we don't lose data all the time .small[[12:00]] 
+  3. Add scalability and integration .small[[14:00]]
+  4. Streaming integration .small[[15:30]]
 
 
 ### First things first
@@ -446,8 +446,8 @@ class: center, middle
 ### SBT primer
 
 - Run a project: `sbt "project example-1-akka" "run arg1 arg2"`
-- **Eclipse**: Create eclipse project files using `sbt eclipse`, then import
-- **IntelliJ**: Install Scala and SBT plugins, import, set Java to level 8 (in both places)
+- **Eclipse** (4.6): Create eclipse project files using `sbt eclipse`, then import
+- **IntelliJ** (16.2.5): Install Scala and SBT plugins, import (download sources AND javadoc)
 - Fallback: `sbt makePom`, and Maven `pom` will magically appear in `target/`
 
 - Why SBT?
