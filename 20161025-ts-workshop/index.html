@@ -44,13 +44,8 @@ This presentation: http://jypma.github.io/20161025-ts-workshop
 - Exercises
   1. Create a chat web application using akka
   2. Add persistence so we don't lose data all the time 
-  
-- Lunch!
-  
   3. Add scalability and integration
   4. Streaming integration
-  
-- Profit!
 
 
 ### First things first
@@ -59,7 +54,7 @@ mkdir workshop-1
 cd workshop-1
 wget "https://jypma.github.io/20161025-ts-workshop/workshop-1-akka.tgz"
 tar xzvf workshop-1-akka.tgz
-./sbt compile  //or just "sbt compile" if installed
+./sbt compile  #or just "sbt compile" if installed
 ```
 - This presentation: http://jypma.github.io/20161025-ts-workshop
 - Akka guide: [http://doc.akka.io/docs/akka/2.4/java.html](http://doc.akka.io/docs/akka/2.4/java.html)
@@ -452,8 +447,8 @@ class: center, middle
 
 - Run a project: `sbt "project example-1-akka" "run arg1 arg2"`
 - **Eclipse**: Create eclipse project files using `sbt eclipse`, then import
-- **IntelliJ**: Install Scala and SBT plugins,import, set Java to level 8 (in both places)
-- Fallback: `sbt makePom`, and a Maven pom will magically appear in `target/`
+- **IntelliJ**: Install Scala and SBT plugins, import, set Java to level 8 (in both places)
+- Fallback: `sbt makePom`, and Maven `pom` will magically appear in `target/`
 
 - Why SBT?
   - Solid support for protobuf, docker
@@ -467,19 +462,19 @@ First:
 
 - Download the [skeleton](workshop-1-akka.tgz) for exercise 1 and unpack it
   - Make your changes in the `example-1-akka` directory
-  - Run : `sbt "project example-1-akka" run
+  - Run : `sbt "project example-1-akka"` run
 - Create implementation of `ConversationProtocol` using plain actors
   - Use `akka.pattern.PatternCS.ask` as bridge to your actors
 
 --
+
 And then, if your're bored:
 
-
-- _akka-http_: Change `RootRoute` so it reads from files and the HTML becomes hot-reloadable
-- _akka-http_, _akka-streams_: Add web socket (or hanging GET) support to client and server using akka streams
-- _akka-http_: Add authentication
-- _typesafe-config_: Make magic numbers configurable using akka's [config library](https://github.com/typesafehub/config)
-- _js_: Make the client beautiful
+- Change `RootRoute` so it reads from files and the HTML becomes hot-reloadable
+- Add web socket (or hanging GET) support to client and server using akka streams
+- Add authentication
+- Make magic numbers configurable using akka's [config library](https://github.com/typesafehub/config)
+- Make the client beautiful
 
 ---
 
@@ -490,12 +485,18 @@ And then, if your're bored:
   - Use `getContext().actorOf(props, name)` to name a child actor
   - Use `getContext().getChild(name)` to check if a child actor already exists
 - The parent can serve as a router proxy
-  - Use `childActorRef.forward(msg, getContext())` to forward an incoming message to a child.
+  - Use `childActorRef.forward(msg, getContext())` to forward an incoming message to a child. 
     The child will process the message as if the original sender sent it.
 
 ---
 
 # Exercise 1: Solution
+
+---
+
+class: center, middle
+
+# Persistence & event sourcing
 
 ---
 
@@ -710,12 +711,13 @@ First:
 
 - Either resume from part 1, or get a fresh [skeleton](workshop-2-persistence.tgz) for exercise 2 and unpack it
   - Make your changes in the `example-2-persistence` directory
-  - Run : `sbt "project example-2-persistence" run
+  - Run : `sbt "project example-2-persistence"` run
 - Define your command, event, and state types
 - Introduce persistence by making `ChatActor` extend `AbstractPersistentStatefulActor`
 - Use the [LevelDB persistence plugin](http://doc.akka.io/docs/akka/current/java/persistence.html#local-leveldb-journal-java)
 
 --
+
 And then, if your're bored:
 
 - Other things you didn't get to do in part 1 ;-)
@@ -743,6 +745,12 @@ akka.persistence.journal.plugin = "akka.persistence.journal.leveldb"
 
 ---
 
+class: center, middle
+
+# Clustering
+
+---
+
 # Immutability
 
 - Command, event and state classes are best kept immutable
@@ -750,11 +758,11 @@ akka.persistence.journal.plugin = "akka.persistence.journal.leveldb"
     * Interfaces declare and embrace mutability
     * Implementing data structures are not [_persistent_](https://en.wikipedia.org/wiki/Persistent_data_structure)
  
-- Serializable DTO's: `protobuf`
+- Serializable DTO's: [Google Protobuf](https://developers.google.com/protocol-buffers/)
     * Cross-platform IDL, Java code generator creates immutable classes
     * Very efficient binary representation and nice versioning
     
-- Everything else: `javaslang.io`
+- Everything else: [`javaslang`](http://www.javaslang.io/)
     * Immutable, persistent collection classes focused on Java 8
     * Rich lambda-based combinator DSL
 
@@ -846,7 +854,7 @@ proxy.tell(new ChatCommand.PostMessage(
 
 ---
 
-# ts-reaktive: Clustering for AbstractPersistentStatefulActor
+# ts-reaktive: Clustering actor support
 
 ```
 public class PersistentActorSharding<C> {
@@ -860,7 +868,7 @@ public static final PersistentActorSharding<ConversationCommand> sharding =
     PersistentActorSharding.of(Props.create(ChatActor.class), "conversation", 
                                ConversationCommand::getConversationId);
 ```
-- Implements sensible sharding defaults
+- `PersistentActorSharding` implements sensible sharding defaults
     - Fixed shard allocation per entityId hashcode
 - No message unwrapping (transparent proxy)
 
@@ -870,7 +878,7 @@ public static final PersistentActorSharding<ConversationCommand> sharding =
 
 - Either resume from part 2, or get a fresh [skeleton](workshop-3-cluster.tgz) for exercise 3 and unpack it
   - Make your changes in the `example-3-cluster` directory
-  - Run : `sbt "project example-3-reaktive" run
+  - Run : `sbt "project example-3-cluster"` run
 - Refactor `ConversationActor` to be a `AbstractStatefulPersistentActor`
 - Add [clustering support](http://doc.akka.io/docs/akka/current/java/cluster-usage.html)
 - Switch to the [Cassandra persistence plugin](https://github.com/akka/akka-persistence-cassandra)
@@ -878,23 +886,16 @@ public static final PersistentActorSharding<ConversationCommand> sharding =
 And then, if your're bored:
 
 --
-- Add event journal API using `EventRoute`, adding akka [Persistence Query](http://doc.akka.io/docs/akka/current/java/persistence-query.html) for cassandra
-- Serve the conversation contents as an akka stream using `ts-reaktive-marshal`
 - Add validation to incoming messages by implementing `AbstractCommandHandler.getValidationError`
 - Define command and event classes using Google Protobuf (instead of `Serializable`), in `src/main/protobuf`
+- Serve the conversation contents as an akka stream using `ts-reaktive-marshal`
 
 ---
 # Exercise 3: Tips
 
-- Use docker to start a cassandra server real quick: `docker run -d --name cass -p 9042:9042 cassandra:3.7`
-- Or alternatively, just run it directly
-
+- Use docker to start a cassandra server real quick: 
 ```
-wget \
-http://mirrors.dotsrc.org/apache/cassandra/3.7/apache-cassandra-3.7-bin.tar.gz
-tar xzvf apache-cassandra-3.7-bin.tar.gz
-cd apache-cassandra-3.7
-bin/cassandra
+docker run -d --name cass -p 9042:9042 cassandra:3.7
 ```
 
 - Your `new ActorSystem("myName")` must match the configured seed nodes
@@ -908,12 +909,17 @@ bin/cassandra
     config = ConfigFactory.parseString("akka.remote.netty.tcp.port=" + 
       (2551 + Integer.parseInt(args[0])));
     system = new ActorSystem(config.withFallback(ConfigFactory.load()));
-
-sbt "project example-3-reaktive" "run 1"
 ```
+and then `sbt "project example-3-reaktive" "run 1"`
 
 ---
 # Exercise 3: Solution
+
+---
+
+class: center, middle
+
+# Streaming
 
 ---
 
@@ -994,7 +1000,7 @@ final CompletionStage<Done> done = numbers
 # Akka persistence query
 
 - Query part of (or the whole) event journal in various ways
-- Each query type defined by a Java interface
+- Each query type defined by a Java interface. 
 - We'll be using `EventsByTagQuery`: all events, across aggregates, since a given timestamp
 
 ```
@@ -1006,7 +1012,13 @@ class EventEnvelope {
     Long offset; String persistenceId; Long sequenceNr; Object event
 }
 ```
-- The source will return historic events, catching up to and resuming with real-time
+- The source will return historic events, catching up to real time
+- Lookup is journal-dependent. For cassandra:
+```
+CassandraReadJournal journal = PersistenceQuery.get(system)
+    .getReadJournalFor(CassandraReadJournal.class, 
+                       CassandraReadJournal.Identifier());
+```
 
 ---
 
@@ -1014,7 +1026,7 @@ class EventEnvelope {
 
 - Either resume from part 3, or get a fresh [skeleton](workshop-4-streams.tgz) for exercise 4 and unpack it
   - Make your changes in the `example-4-streams` directory
-  - Run : `sbt "project example-4-streams" run
+  - Run : `sbt "project example-4-streams"` run
 - Create an independent chat bot that is listening in on conversations
   - Implement it by running a continuous persistence query
   - Have the bot respond whenever anybody types "`/bot`" in a conversation
@@ -1024,25 +1036,24 @@ class EventEnvelope {
 # Exercise 4: tips
 
 - Add the following config to have the cassandra persistence query be more real-time:
+
 ```
 cassandra-journal {
   pubsub-minimum-interval = 100ms
 }
 
 cassandra-query-journal {
-  eventual-consistency-delay = 0s // we want immediate results, even if they're inconsistent between multiple queries
+  eventual-consistency-delay = 0s 
   refresh-interval = 1s           
 }
 ```
 
 ---
 
-Optional extras
+# Optional extra topics
 
-# TODO present about akka http here
-
-# TODO present about tsreaktive-marshal here
-  TODO add javadoc to ALL protocol combinator factory methods
+1. Akka HTTP routing DSL
+2. ts-reaktive Marshalling DSL
 
 ---
 
@@ -1053,10 +1064,8 @@ Optional extras
 - Want to get involved?
   - Get:  [http://akka.io/](http://akka.io/)
   - Read: [http://doc.akka.io/docs/akka/current/java.html](http://doc.akka.io/docs/akka/current/java.html)
-  - Chat: `#ceci-nest-pas-une-pipe` on Slack, or [https://gitter.im/akka/akka](https://gitter.im/akka/akka)
+  - Chat: `#akka-workshop` on Slack, or [https://gitter.im/akka/akka](https://gitter.im/akka/akka)
   - Hack: [https://github.com/Tradeshift/ts-reaktive/](https://github.com/Tradeshift/ts-reaktive/) and [https://github.com/jypma/ts-reaktive-examples/](https://github.com/jypma/ts-reaktive-examples/) 
-
-
 
     </textarea>
     <script src="remark-latest.min.js"></script>
