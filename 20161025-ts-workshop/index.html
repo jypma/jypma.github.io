@@ -737,6 +737,7 @@ static abstract class Handler extends AbstractCommandHandler<
 ```
 akka.persistence.journal.plugin = "akka.persistence.journal.leveldb"
 ```
+- The SBT project already has LevelDB on the classpath
 
 ---
 
@@ -1029,6 +1030,16 @@ CassandraReadJournal journal = PersistenceQuery.get(system)
 - Create an independent chat bot that is listening in on conversations
   - Implement it by running a continuous persistence query
   - Have the bot respond whenever anybody types "`/bot`" in a conversation
+
+
+--
+
+And then, if your're bored:
+
+- Make sure the chat bot only starts once in the cluster
+  - For this, investigate [ClusterSingleton](http://doc.akka.io/docs/akka/2.4.11/java/cluster-singleton.html)
+- Make sure the stream restarts if interrupted, e.g. due to cassandra restart
+  - For this, investigate [BackoffSupervisor](http://doc.akka.io/docs/akka/2.4.11/general/supervision.html#Delayed_restarts_with_the_BackoffSupervisor_pattern)
 
 ---
 
