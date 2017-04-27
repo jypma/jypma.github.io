@@ -243,10 +243,10 @@ jyp@tradeshift.com
 .good[&rarr;] Obvious way to stream data
 .bad[&rarr;]  Limited scalability (max threads) and performance (context switch)
 .bad[&rarr;]  Deadlocks
+.bad[&rarr;] Most of us _think_ we know this
 - **Futures / Promises**
 .good[&rarr;] Easy to grasp
 .good[&rarr;] Solves thread scalability
-.bad[&rarr;]  Other performance limits (dispatcher queue instead of scheduler)
 .bad[&rarr;]  Still need locks for shared data access, or limit to single thread
 .bad[&rarr;]  Can't stream data
 - **Actors**
