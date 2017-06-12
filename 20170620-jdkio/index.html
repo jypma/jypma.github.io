@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Disruptive Development using Event Sourcing</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="animate.min.css">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .hljs-default .hljs {
+        background: #E6E4E4;
+      }
+      .remark-inline-code {
+        background: #E6E4E4;
+      }
+      .small { font-size: 75%; }
+      .smallright { font-size: 90%; text-align: right; margin-top: 8em; }
+      .floatright { float: right; }
+      
+      .remark-slide-container {
+        visibility: hidden;
+        display: initial;
+      }
+      .remark-visible {
+        visibility: visible;
+      }
+      .remark-slide-content.hljs-default {
+         background-size: 100%; 
+      }
+      .remark-slide-content {
+        background: #F2F4F7;
+         color: #060606;
+         text-shadow: 1px 1px 2px rgba(0,0,0, 0.1);
+      }
+      .center img {
+         background: rgba(255,255,255,0.3);
+         border: 1px solid #EBEBE5;
+         box-shadow: 1px 1px 2px rgba(0,0,0, 0.1);
+      }
+      .floatright img {
+         background: rgba(255,255,255,0.3);
+         border: 1px solid #EBEBE5;      
+         box-shadow: 1px 1px 2px rgba(0,0,0, 0.1);
+      }
+      .good:before { 
+         content: ' '; 
+         display: block; 
+      }
+      .good {
+         color: green;
+      }
+      .bad:before { 
+         content: ' '; 
+         display: block; 
+      }
+      .bad {
+         color: red;
+      }
+      pre {
+         text-shadow: none;
+      }
+      a {
+        color: #7272B6;
+      }
+      .remark-slide-content > ul > li {
+        padding-top: 5px;
+      }
+      h1 {
+        margin-bottom: 19px;
+      }
+      .mermaid {
+        font-size: 16px;
+      }
+      span.edgeLabel {
+        background-color: #F2F4F7;
+      }
+      @media print {
+      .remark-slide-content {
+        text-shadow: none;
+      }      
+      }
+    </style>
+    <!--
+    <link rel="stylesheet" href="https://cdn.rawgit.com/knsv/mermaid/6.0.0/dist/mermaid.css">
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+    <script src="https://cdn.rawgit.com/knsv/mermaid/6.0.0/dist/mermaid.js"></script>
+    -->
+    <link rel="stylesheet" href="mermaid.min.css">
+    <script src="remark-latest.min.js"></script>
+    <script src="mermaid.min.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Reactive marshalling
+
+Playing with XML, JSON and CSV made fun again
+
+
+Jan Ypma
+
+jyp@tradeshift.com
+
+---
+
+# Agenda
+
+- XML, I know this!
+- Introduction to Akka streams
+- Structured data as streams
+- Document processing use case
+- Other features
+
+---
+
+# Problem statement
+
+- Tradeshift processes XML documents of > 100MB in size
+- Several of these per second, at an increasing rate
+- Only a small part of that 100MB is semantically interesting
+
+```xml
+<Invoice>
+  <Attachment filename="documentation1.jpg">
+    IVAD1dOYeBI5rdxktUgQvdn/NL8idKirI35p2DhD[...]
+  </Attachment>
+  [...many more attachments with base64 crap...>
+  <InvoiceLine>
+    <Name>Cats</Name>
+    <Amount>120</Amount>
+  </InvoiceLine>
+</Invoice>
+```
+
+- We historically use JAXB-generated DTO's to process these
+
+- Can someone spot a problem with this approach?
+---
+
+# I need to do XML, I know this!
+
+```
+package com.service.data;
+
+class Person {
+    private final String firstName, lastName;
+    private final List<String> address;
+    
+    public Person (String firstName, String lastName, Iterable<String> address) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = Collections.unmodifiableList(new ArrayList(address)); 
+    }
+    
+    public String getFirstName() { return firstName; }
+    
+    public String getLastName() { return lastName; }
+    
+    public List<String> getAddress() { return address; }
+}
+``` 
+
+---
+
+# I need to do XML, I know this!
+
+```
+*@XmlRootElement(namespace = API, name = "Person")
+class Person {
+    private final String firstName, lastName;
+    private final List<String> address;
+    
+*   private Person() {}
+    
+    public Person (String firstName, String lastName, Iterable<String> address) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = Collections.unmodifiableList(new ArrayList(address)); 
+    }
+    
+*   @XmlAttribute("firstName")
+    public String getFirstName() { return firstName; }
+    
+*   @XmlAttribute("lastName")
+    public String getLastName() { return lastName; }
+    
+*   @XmlElement(namespace = Constants.API, "address")
+    public List<String> getAddress() { return address; }
+}
+``` 
+
+---
+
+# I need to do XML, I know this!
+
+- A short while later...
+
+```
+@XmlRootElement(namespace = API, name = "Person")
+*@XmlAccessorType(XmlAccessType.NONE)
+class Person {
+    /* ... */
+    
+*   public String getName() { return getFirstName() + " " + getLastName(); }
+}
+``` 
+
+---
+
+# I need to do XML, I know this!
+
+- A little later yet...
+```
+class Person {
+      /* ... */
+    
+      private final LocalDate birthday;
+    
+      @XmlAttribute("birthday")
+      public LocalDate getBirthday() { return birthday; }
+}
+``` 
+
+- Oh I'd actually like 
+```xml
+<birthday>
+      <year>1981</year><month>11</month><day>1</date>
+</birthday>
+```
+
+- Anyone?
+
+--
+.small[
+- Declare `@XmlJavaTypeAdapter` on every usage
+- Create `XmlAdapter<LocalDate,Object>` and have it cast to DOM `Element`
+]
+---
+
+# I need to do XML, I know this!
+
+- Even later...
+```
+@XmlRootElement(namespace = API_V2, name="Person")
+class PersonV2 {
+    //lots of extra fields added here, 
+    //slightly incompatible with Person 
+    
+    public Person toPerson() { return new Person( /* ... */ ); }
+}
+```
+
+- I'd like to accept either a `<Person xmlns="v1">` or a `<Person xmlns="v2">` for my API
+
+- Anyone? 
+---
+
+# Problems with data binding through annotations
+
+- Limited discoverability
+
+- Tightly coupled
+  - Polluting service data classes with REST API logic
+  - Must change the data classes (or write clumsy XML or binding code)
+  - Must always deal with both read and write concerns
+  - Code structure must follow XML or JSON object structure
+  
+- Limited reuse
+  - Data classes can only be annotated once
+  - Hard or impossible to use any collections besides `java.util.ArrayList`
+  - Duplication: namespace declarations, collection handling, XmlAccessorType, ...
+
+- Same concerns exist, to differing extents, in Jackson and its annotations
+
+---
+
+# Data binding through code
+
+- What if I could just say "_Put the first name into firstName, the last into lastName, and the address into some tags_"
+
+```
+WriteProtocol<XMLEvent,Person> proto = 
+  tag(qname(API, "person"),
+    Person::getFirstName, attribute(qname("firstName")),
+    Person::getLastName, attribute(qname("lastName")),
+    Person::getAddress, iterable(
+      tag(qname(API, "address"), 
+        body
+      )
+    )
+  );
+```
+
+- which can then be used e.g. with STaX:
+
+    `String xml = stax.writeAsString(person, proto.writer());`
+
+---
+
+# Read and write protocol
+
+- Just add another lambda to allow reading as well
+
+```
+Protocol<XMLEvent,Person> proto = 
+  tag(qname(API, "person"),
+    attribute(qname("firstName")),
+    attribute(qname("lastName")),
+*   arrayList(
+      tag(qname(API, "address"), 
+        body
+      )
+    ),
+*   (f, l, a) -> new Person(f, l, a),
+    Person::getFirstName,
+    Person::getLastName,
+    Person::getAddress
+  );
+```
+
+- reading with STaX:
+
+    `Person p = stax.parse("<person>...</person>", proto.reader()).findFirst().get();`
+---
+# Our birthday example
+
+```
+Protocol<XMLEvent,LocalDate> date(QName tagName) {
+  return tag(tagName,
+    tag(qname("year"), body.as(INTEGER)),
+    tag(qname("month"), body.as(INTEGER)),
+    tag(qname("day"), body.as(INTEGER)),
+    LocalDate::of,
+    LocalDate::getYear,
+    LocalDate::getMonthValue,
+    LocalDate::getDayOfMonth
+  );
+}
+
+Protocol<XMLEvent,Person> proto = 
+  tag(qname(API, "person"),
+    attribute(qname("firstName")),
+    attribute(qname("lastName")),
+    arrayList(
+      tag(qname(API, "address"), 
+        body
+      )
+    ),
+*   date(qname("birthday")),
+    Person::new, /* ... */
+  );
+```
+
+- But why limit ourselves to STaX or Jackson's thread-blocking model?
+
+---
+
+# Introduction to Akka streams
+
+- The challenge: 
+  - We all know how to `while (inputStream.read(buf) > 0) { ... }`
+  - We _also_ all know that blocking on a stream is a waste of thread resources
+  - Take existing streaming concept, make it asynchronous, add in some type safety
+
+- ** Akka streams **
+```
+  Flow<Integer,Integer,NotUsed> delay = 
+      Flow.<Integer>create().delay("1 second");
+  Sink<Integer,CompletionStage<Done>> print = 
+      Sink.foreach(i -> System.out.println(i));
+    
+  Source.range(0, 10000)     // Source<Integer,NotUsed>
+        .via(delay)            // Source<Integer,NotUsed>
+        .to(print)             // RunnableGraph<CompletionStage<Done>>
+        .run(materializer);    // CompletionStage<Done>
+```
+  - An asynchronous graph processing framework
+  - `Source<T,M>` emits elements of type T
+  - `Flow<T,U,M>` consumes elements of type T, emits elements of type U
+  - `Sink<T,M>` consumes elements of type T
+
+---
+
+# Introduction to Akka streams
+```
+  Flow<Integer,Integer,NotUsed> delay = 
+      Flow.<Integer>create().delay("1 second");
+  Sink<Integer,CompletionStage<Done>> print = 
+      Sink.foreach(i -> System.out.println(i));
+    
+  Source.range(0, 10000)       // Source<Integer,NotUsed>
+        .via(delay)            // Source<Integer,NotUsed>
+        .to(print)             // RunnableGraph<CompletionStage<Done>>
+        .run(materializer);    // CompletionStage<Done>
+```
+
+.mermaid[graph LR
+   range -->|Integer| delay
+   delay -->|Integer| print
+]
+
+---
+
+# Introduction to Akka streams
+```
+  Flow<Integer,Integer,NotUsed> delay = 
+      Flow.<Integer>create().delay("1 second");
+  Sink<Integer,CompletionStage<Done>> print = 
+      Sink.foreach(i -> System.out.println(i));
+* Flow<Integer,ByteString,NotUsed> toBytes = Flow.fromFunction(i -> 
+*     ByteString.fromBytes(String.valueOf(i).getBytes()));
+  Sink<ByteString,CompletionStage<IOResult>> file = 
+      FileIO.toFile(Paths.get("out.txt"));
+    
+  Source.range(0, 10000)       // Source<Integer,NotUsed>
+        .via(delay)            // Source<Integer,NotUsed>
+*       .alsoTo(print)         // Source<Integer,NotUsed>
+*       .via(toBytes)          // Source<ByteString,NotUsed>
+*       .to(file)              // RunnableGraph<CompletionStage<IOResult>>
+        .run(materializer);    // CompletionStage<IOResult>
+```
+
+.mermaid[graph LR
+   range -->|Integer| delay
+   delay -->|Integer| print
+   delay -->|Integer| toBytes
+   toBytes -->|ByteString| file
+]
+
+---
+
+# Structured data as streams
+
+- Let's try to represent XML, JSON or CSV as a stream
+  - Not entirely new: `@see org.xml.sax.DocumentHandler` (SAX 1)
+  - Then came SAX2, but more recent STaX: [`javax.xml.stream.events.XMLEvent`](http://docs.oracle.com/javaee/5/api/javax/xml/stream/events/XMLEvent.html)
+  - No equivalent data type for JSON or CSV
+  
+- Introduce types to indicate parser events
+  - JSON: `JSONEvent` (start object, start array, declare field, string value, ...)
+  - XML: `XMLEvent` (start element, attribute, text, ...)
+  - CSV: `CSVEvent` (start line, start column, text, ...)
+  
+- Now we can have parsers and generators:
+```
+     T             |  Flow[ByteString,T,...]    |    Flow[T,ByteString,...]
+     =========================================================================
+     XMLEvent      |  AaltoReader.instance      |    StaxWriter.instance
+     JSONEvent     |  ActsonReader.instance     |    JacksonWriter.instance
+     CSVEvent      |  CSVParser.instance        |    CSVWriter.instance
+```
+---
+
+# Implementation progress
+
+- Format-specific combinators for structural features of [XML](https://github.com/Tradeshift/ts-reaktive/blob/master/ts-reaktive-marshal/src/main/java/com/tradeshift/reaktive/xml/XMLProtocol.java), [JSON](https://github.com/Tradeshift/ts-reaktive/blob/master/ts-reaktive-marshal/src/main/java/com/tradeshift/reaktive/json/JSONProtocol.java) and [CSV](https://github.com/Tradeshift/ts-reaktive/blob/master/ts-reaktive-csv/src/main/java/com/tradeshift/reaktive/csv/marshal/CsvProtocol.java)
+- Format-agnostic combinators
+  - Java collection bindings (`ArrayList`, `Optional`, ...)
+  - Javaslang collection bindings (`Seq`, `Option`, ...)
+  - Scala bindings (in development)
+  
+- Use protocols as an Akka stream stage
+    ```
+    Protocol<XMLEvent,Person> proto = ...;
+    Flow<XMLEvent,Person,NotUsed> unmarshal = ProtocolReader.of(proto);
+    Flow<Person,XMLEvent,NotUsed> marshal = ProtocolWriter.of(proto);
+    ```
+- Selectively process parts of a stream: `ProtocolFilter`
+    ```
+    public static <E> Flow<E, E, NotUsed> filter(ReadProtocol<E,E> selector, Graph<FlowShape<E,E>, ?> target)
+    ```
+    
+- Validate an XSD schema: `SchemaValidatorFlow`
+
+---
+
+# A few complete examples
+
+- Convert XML properties file from `<property name='foo' value='bar'/>` to `<foo>bar</foo>`
+
+```
+import static com.tradeshift.reaktive.xml.XMLProtocol.*;
+
+Protocol<XMLEvent, Tuple2<String, String>> in_proto = tag(qname("property"),
+    attribute("name"),
+    attribute("value")
+);
+
+Protocol<XMLEvent, Tuple2<String, String>> out_proto =  anyTagWithBody.asLocalName();
+
+Source<ByteString, CompletionStage<IOResult>> in = StreamConverters.fromInputStream(() -> System.in);
+Source<XMLEvent, CompletionStage<IOResult>> in_xml = in.via(AaltoReader.instance);
+Source<Tuple2<String, String>, CompletionStage<IOResult>> elements = in_xml.via(ProtocolReader.of(in_proto));
+Source<XMLEvent, CompletionStage<IOResult>> out_xml = elements.via(ProtocolWriter.of(out_proto));
+Source<ByteString, CompletionStage<IOResult>> out_bytes = out_xml.via(StaxWriter.flow());
+Sink<ByteString, CompletionStage<IOResult>> out = StreamConverters.fromOutputStream(() -> System.out);
+out_bytes.runWith(out, materializer).thenAccept(ioResult -> {
+    system.terminate();
+});
+```
+
+---
+
+# A few complete examples
+
+- Convert XML properties file from `<property name='foo' value='bar'/>` to `<foo>bar</foo>`
+
+```
+StreamConverters
+    .fromInputStream(() -> System.in)                        // Source<ByteString, CompletionStage<IOResult>>
+    .via(AaltoReader.instance)                               // Source<XMLEvent, CompletionStage<IOResult>>
+    .via(ProtocolReader.of(                                  // Source<Tuple2<String, String>,
+        tag(qname("property"),                               //        CompletionStage<IOResult>>
+            attribute("name"),
+            attribute("value")
+        )
+    ))
+    .via(ProtocolWriter.of(anyTagWithBody.asLocalName()))    // Source<XMLEvent, CompletionStage<IOResult>>
+    .via(StaxWriter.flow())                                  // Source<ByteString, CompletionStage<IOResult>>
+    .to(StreamConverters.fromOutputStream(() -> System.out)) // RunnableGraph<CompletionStage<IOResult>>
+    .run(materializer).thenAccept(ioResult -> {
+        system.terminate();
+    });
+```
+---
+
+# A few complete examples
+
+- Find cheapest offer in battle.net JSON auctions
+
+```json
+{
+"realm":{"name":"Aegwynn","slug":"aegwynn"},
+"alliance":{"auctions":[
+        {"auc":234421082,"item":3821,"owner":"???","ownerRealm":"???",
+         "bid":84500,"buyout":90000,"quantity":1,"timeLeft":"VERY_LONG","rand":0,"seed":385088896},
+        {"auc":234242934,"item":72093,"owner":"???","ownerRealm":"???",
+         "bid":399999,"buyout":399999,"quantity":20,"timeLeft":"VERY_LONG","rand":0,"seed":517959808},
+        {"auc":234278691,"item":74863,"owner":"???","ownerRealm":"???",
+         "bid":13750,"buyout":15000,"quantity":1,"timeLeft":"VERY_LONG","rand":0,"seed":1789946496},
+[...many more megabytes...]        
+```
+
+---
+
+# A few complete examples
+
+- Find cheapest offer in battle.net JSON auctions
+
+```
+import static com.tradeshift.reaktive.json.JSONProtocol.*;
+
+public static class Auction {
+    public final long id;
+    public final long item;
+    public final long bid;
+
+    public Auction(long id, long item, long bid) {
+        this.id = id;
+        this.item = item;
+        this.bid = bid;
+    }
+
+    public static final ReadProtocol<JSONEvent, Auction> proto = object(
+        field("auc", longValue),
+        field("item", longValue),
+        field("bid", longValue),
+        Auction::new
+    );
+}
+```
+
+---
+
+# A few complete examples
+
+- Find cheapest offer in battle.net JSON auctions
+
+```
+Map<Long, Auction> cheapest = new HashMap<>();
+
+FileIO.fromFile(new File("auctions.json"))
+    .via(ActsonReader.instance)
+    .via(ProtocolReader.of(object(
+        field("alliance",
+            object(
+                field("auctions",
+                    array(Auction.proto)
+                )
+            )
+        )
+    )))
+    .runWith(Sink.foreach(auction -> {
+        if (!cheapest.containsKey(auction.item) || cheapest.get(auction.item).bid > auction.bid) {
+            cheapest.put(auction.item, auction);
+        }
+    }), materializer).thenAccept(done -> {
+        // TODO: output the cheapest alternatives as JSON?
+        cheapest.forEach((id, auction) -> System.out.println(id + " -> " + auction.bid));
+        system.terminate();
+    });
+```
+
+---
+
+# Huge XML document processing
+
+```xml
+<Invoice>
+  <Attachment filename="documentation1.jpg">
+    IVAD1dOYeBI5rdxktUgQvdn/NL8idKirI35p2DhD[...]
+  </Attachment>
+  [...many more attachments with base64 crap...>
+  <InvoiceLine>
+    <Name>Cats</Name>
+    <Amount>120</Amount>
+  </InvoiceLine>
+</Invoice>
+```
+
+- Extract each attachment into an S3 key
+- Replace the `<Attachment>` content with just a reference URI
+- Store the resulting root XML document into S3 as well
+
+---
+
+# Huge XML document processing
+
+.mermaid[graph LR
+   in(ByteString)
+   xml(XMLEvent)
+   in --> xml
+   split(Split on attachment)
+   xml --> split
+   att1(Attachment 1)
+   split --> att1
+   b1(Base64 decode)
+   s31(Upload to S3)
+   ref1(Replace with ref)
+   att1 --> b1
+   b1 --> s31
+   att1 --> ref1
+   att2(Attachment 2)
+   s32(Upload to S3)
+   ref2(Replace with ref)
+   b2(Base64 decode)
+   att2 --> b2
+   b2 --> s32
+   att2 --> ref2
+   split --> att2
+   body(Body)
+   split --> body
+   join(concat)
+   ref1 --> join
+   ref2 --> join
+   body --> join
+   out(ByteString)
+   join --> out
+   outs3(Upload to S3)
+   out --> outs3
+]
+
+- Proof of concept implements the graph above
+
+--
+  - Able to process 1000 concurrent requests of 100MB each
+  - At a rate of a few seconds per document (averaged)
+  - On a 256MB heap
+  - With 8 threads
+
+        
+---
+
+# Wrap-up
+
+- Nice properties
+  - Compile-time traceability
+  - Composable
+  - Extensible through simple interfaces
+  - Re-use, even across XML, JSON and CSV
+
+- Want to get involved?
+  - Get:  [https://github.com/Tradeshift/ts-reaktive/](https://github.com/Tradeshift/ts-reaktive/) (`ts-reaktive-marshal-*` modules) 
+  - Talk: [https://github.com/akka/alpakka/pull/320](https://github.com/akka/alpakka/pull/320)
+  - Chat: [https://gitter.im/akka/akka](https://gitter.im/akka/akka)
+
+
+---
+
+class: center, middle
+
+# Extra slides
+
+---
+
+
+    </textarea>
+    <script>
+      var slideshow = remark.create({
+          ratio: '16:9',
+          highlightLanguage: "java",
+          highlightLines: true
+      });
+      mermaid.initialize({startOnLoad:false, cloneCssStyles: false});
+      
+      function initMermaid(s) {
+        var diagrams = document.querySelectorAll('.mermaid');
+        var i;
+        for(i=0;i<diagrams.length;i++){
+          if(diagrams[i].offsetWidth>0){
+            //console.log(diagrams[i]);
+            //console.log(diagrams[i].childNodes[0]);
+            var graphDefinition = diagrams[i].childNodes[0].childNodes[0].nodeValue;
+            //console.log(graphDefinition);
+            
+            var insertSvg = function(svgCode, bindFunctions){
+                //console.log(svgCode);
+                diagrams[i].childNodes[0].innerHTML = svgCode;
+            };
+            
+            var graph = mermaidAPI.render('graphDiv' + i, graphDefinition, insertSvg);
+          }
+        }
+      }
+      slideshow.on('afterShowSlide', initMermaid);
+      initMermaid(slideshow.getSlides()[slideshow.getCurrentSlideIndex()]);
+
+    </script>
+</html>
