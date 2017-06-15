@@ -605,191 +605,140 @@ class: center, middle
 
 ---
 
-# Introducing Akka Streams
-- `Graph` is a *blueprint* for a closed, finite network of *stages*, which communicate by streaming elements
-- `GraphStage<S extends Shape>` is one processing stage within a graph, taking elements in through zero or more *Inlets*, and emitting through *Outlets*
-- It's completely up to the stage when and how to respond to arriving elements
-- All built-in graph stages embrace _backpressure_ and _bounded processing_
+# Data binding: a solved problem?
 
-#### Mostly used graph stages
-- `Source<T, M>` has one outlet of type `T`
-- `Sink<T, M>` has one inlet of type `T` 
-- `Flow<A, B, M>` has one inlet of type `A` and one outlet of type `B`
-- `RunnableGraph<M>` has no inlets or outlets
-
-#### Reactive streams
-- Akka is a reactive streams implementation (just like `RxJava` and others)
-- You typically don't interact in terms of _publisher_ and _subscriber_ directly
-
----
-
-# Hello, streams
+- Who remembers this?
 
 ```
-final ActorSystem system = ActorSystem.create("QuickStart");
-final Materializer materializer = ActorMaterializer.create(system);
-
-final Source<Integer, NotUsed> numbers = Source.range(1, 100);
-
-final Sink<Integer, CompletionStage<Done>> print = 
-    Sink.foreach(i -> System.out.println(i));
-
-final CompletionStage<Done> done = numbers.runWith(print, materializer);
-  
-// Output: 
-// 1
-// 2
-// ...
-```
----
-
-# Stream materialization
-
-- _Graph_ is only a blueprint: nothing runs until it's given to a _materializer_, typically `ActorMaterializer`
-- All graph stages are generic in their materialized type `M`
-- Graph can be materialized (`run`, `runWith`) more than once
-
-```
-class Source<T, M> {
-  // A graph which materializes into the M2 of the sink (ignoring source's M)
-  public RunnableGraph<M2> to(Sink<T,M2> sink);
-  
-  // Materializes, and returns the M of the sink (ignoring this source's M) 
-  public <M2> M2 runWith(Sink<T, M2> sink, Materializer m) { ... }
-  
-  // A graph which materializes into the result of applying [combine] to 
-  // this source's M and the sink's M2 
-  public <M2, MR> RunnableGraph<MR> toMat(Sink<T,M2> sink, 
-                                          Function2<M,M2,MR> combine);
-}
-
-class RunnableGraph<M> {
-  public M run(Materializer m);
-}
-```
-
-
----
-
-# Reusable pieces
-
-- `Source`, `Sink` and `Flow` are all normal, immutable objects, so they're ideal to be
-   constructed in reusable factory methods:
-
-```
-public Sink<String, CompletionStage<IOResult>> lineSink(String filename) {
-  Sink<ByteString, CompletionStage<IOResult>> file = 
-      FileIO.toPath(Paths.get(filename);
-
-  // Let's start with some strings
-  return Flow.of(String.class)    // Flow<String, String, NotUsed>
-  
-  // Convert them into bytes (UTF-8), adding a newline
-  // We now have a Flow<String, ByteString, NotUsed>
-    .map(s -> ByteString.fromString(s + "\n"))
+@XmlRootElement
+class Person {
+    private final String firstName, lastName;
+    private final List<String> address;
     
-  // Send them into a file, and we want the IOResult of the
-  // FileIO sink as materialized value of our own sink
-    .toMat(file), Keep.right());
+    public Person (String firstName, String lastName, Iterable<String> address) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = Collections.unmodifiableList(new ArrayList(address)); 
+    }
+    
+    public String getFirstName() { return firstName; }
+    public String getLastName() { return lastName; }
+    public List<String> getAddress() { return address; }
 }
-
-numbers.runWith(lineSink("numbers.txt"), materializer);
-```
+``` 
 
 ---
 
-# Time-based processing
+# Data binding: a solved problem?
+
+- Who remembers this?
 
 ```
-final Source<Integer, NotUsed> numbers = Source.range(1, 100000000);
-
-final Sink<Integer, CompletionStage<Done>> print = 
-    Sink.foreach(i -> System.out.println(i));
-
-final CompletionStage<Done> done = numbers
-    .throttle(1, Duration.create(1, TimeUnit.SECONDS), 1, 
-              ThrottleMode.shaping())
-    .runWith(print, materializer);
-
-```
-
-- This does what you expect: print one message per second
-- No `OutOfMemoryError`, akka buffers only as needed: _backpressure_
----
-
-# Example Sources
-- Materialize as `ActorRef`
-
-```
-Source<T, ActorRef> s = Source.actorRef(10, OverflowStrategy.fail());
-```
-
-- Materialize as reactive `Subscriber<T>`
-
-```
-Source<T, Subscriber<T>> s = Source.asSubscriber();
-```
-
-- Read from a reactive `Publisher<T> p`
-
-```
-Source<T, NotUsed> s = Source.fromPublisher(p);
-```
-
-- Emit the same element regularly
-
-```
-Source<T, Cancellable> s = Source.tick(duration, duration, element);
-```
----
-
-# Example Sinks
-- Send to `ActorRef`
-
-```
-Sink<T, NotUsed> s = Sink.actorRef(target, "done");
-```
-
-- Materialize as reactive `Publisher<T>`
-
-```
-Sink<T, Publisher<T>> s = Sink.asPublisher(WITH_FANOUT);
-```
-
-- Materialize into a `java.util.List` of all elements
-
-```
-Sink<T, List<T>> s = Sink.seq();
-```
+*@XmlRootElement(namespace = Constants.API, name = "Person")
+*@XmlAccessorType(XmlAccessType.NONE)
+class Person {
+    private final String firstName, lastName;
+    private final List<String> address;
+    
+    public Person (String firstName, String lastName, Iterable<String> address) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = Collections.unmodifiableList(new ArrayList(address)); 
+    }
+    
+*    @XmlAttribute("firstName")
+    public String getFirstName() { return firstName; }
+    
+*    @XmlAttribute("lastName")
+    public String getLastName() { return lastName; }
+    
+*    @XmlElement(namespace = Constants.API, "Address")
+    public List<String> getAddress() { return address; }
+}
+``` 
 
 ---
 
-# Example source and flow operators
-- Send `Source<String, M> src` to an additional `Sink<String> sink`
+# Data binding: a solved problem?
+
+- Scala people have it a bit nicer
 
 ```
-Source<String, M> s = src.alsoTo(sink);
+@XmlRootElement(namespace = API, name = "Person")
+@XmlAccessorType(XmlAccessType.FIELD)
+case class Person(firstName: String, lastName: String, address: Seq[String])
+```
+- or do they? .small[ ([scalaxb](http://scalaxb.org/) solves some of this for XML) ]
+
+- Other challenges
+  - JSON and XML on one API, both should look nice
+  - Huge requests
+  - Maintainability (reflection, AOP, ...)
+  - Discoverability (what annotations to attach where)
+  - Type and data represenation are linked
+  - Express request-only or response-only classes
+
+---
+
+# Data binding through code
+
+```
+WriteProtocol<XMLEvent,Person> proto = 
+  tag(qname(API, "person"),
+    Person::getFirstName, attribute(qname("firstName")),
+    Person::getLastName, attribute(qname("lastName")),
+    Person::getAddress, iterable(
+      tag(qname(API, "Address"), 
+        body
+      )
+    )
+  );
+```
+- Put the first name into `attribute` `firstName`, the last into `lastName`, and the address into the `body` of nested `Address` tags.
+  - which can then be used e.g. with STaX:
+
+    `String xml = stax.writeAsString(person, proto.writer());`
+    
+  - or with akka:
+
+    `Flow<XMLEvent,Person> f = ProtocolReader.of(proto);`
+
+---
+# Getting creative
+
+- Extract and write _any_ tag and have it represented as a string
+    
+```
+Protocol<XMLEvent,QName> p = XMLProtocol.anyTag
+```
+    
+- Extract and write any tag in the default namespace and its body into a `Tuple2` ([javaslang.io](http://www.javaslang.io))
+
+```
+Protocol<XMLEvent,Tuple2<String,String>> p = XMLProtocol.anyTag.asLocalName()
 ```
 
-- Process batches of concatenated strings, but only if coming in too fast
+- Represent the `<props><key1>value1</key1><key2>more</key2></props>` pattern as a normal `Map`
 
 ```
-Source<String, M> s = src.batchWeighted(1000, s -> s.length(), 
-                                        s -> s, (s1,s2) -> s1 + s2);
+Protocol<XMLEvent,Map<String, String>> proto = tag(qname("props"),
+  hashMap(
+    anyTagWithBody.asLocalName()
+  ));
 ```
 
-- Process 1 seconds' worth of elements at a time, but at most 100
+- `Map<String,String>` of _all nested tag names and their 'value' attribute_
+- `Map<String,String>` of _all of this tag's attributes_ 
 
-```
-Source<List<String>, M> s = src.groupedWithin(100, Duration.create(1, SECONDS));
-```
+---
+# Reactive marshalling
 
-- Invoke a `CompletionStage` for each element, and resume with the results in order
-
-```
-CompletionStage<Integer> process(String s) { ... }
-Source<String, M> s = src.mapAsync(this::process);
-```
+- Fully streaming
+- No reflection / AOP / annotations / ...
+- DSLs for XML, JSON and CSV, but a unified base API
+- Variants for Java and (coming up) Scala
+- To be added to akka's [alpakka](https://github.com/akka/alpakka) integration repository
+- For now, check [ts-reaktive-marshal](https://github.com/Tradeshift/ts-reaktive/tree/master/ts-reaktive-marshal) on Github
 
     </textarea>
     <script src="remark-latest.min.js"></script>
