@@ -203,6 +203,35 @@ class Person {
 
 # I need to do XML, I know this!
 
+```
+@XmlRootElement(namespace = API, name = "Person")
+class Person {
+    private final String firstName, lastName;
+    private final List<String> address;
+    
+    private Person() {}
+    
+    public Person (String firstName, String lastName, Iterable<String> address) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+*       this.address = new ArrayList(address); 
+    }
+    
+    @XmlAttribute("firstName")
+    public String getFirstName() { return firstName; }
+    
+    @XmlAttribute("lastName")
+    public String getLastName() { return lastName; }
+    
+    @XmlElement(namespace = Constants.API, "address")
+*   public List<String> getAddress() { return Collections.unmodifiableList(address); }
+}
+``` 
+
+---
+
+# I need to do XML, I know this!
+
 - A short while later...
 
 ```
@@ -418,7 +447,7 @@ Protocol<XMLEvent,Person> proto =
   Sink<Integer,CompletionStage<Done>> print = 
       Sink.foreach(i -> System.out.println(i));
 * Flow<Integer,ByteString,NotUsed> toBytes = Flow.fromFunction(i -> 
-*     ByteString.fromBytes(String.valueOf(i).getBytes()));
+*     ByteString.fromArray(String.valueOf(i).getBytes()));
   Sink<ByteString,CompletionStage<IOResult>> file = 
       FileIO.toFile(Paths.get("out.txt"));
     
