@@ -177,7 +177,11 @@ class Person {
 ```
 *@XmlRootElement(namespace = API, name = "Person")
 class Person {
-    private final String firstName, lastName;
+*   @XmlAttribute("firstName")
+    private final String firstName;
+*   @XmlAttribute("lastName")
+    private final String lastName;
+*   @XmlElement(namespace = Constants.API, "address")
     private final List<String> address;
     
 *   private Person() {}
@@ -188,13 +192,10 @@ class Person {
         this.address = Collections.unmodifiableList(new ArrayList(address)); 
     }
     
-*   @XmlAttribute("firstName")
     public String getFirstName() { return firstName; }
     
-*   @XmlAttribute("lastName")
     public String getLastName() { return lastName; }
     
-*   @XmlElement(namespace = Constants.API, "address")
     public List<String> getAddress() { return address; }
 }
 ``` 
@@ -206,7 +207,11 @@ class Person {
 ```
 @XmlRootElement(namespace = API, name = "Person")
 class Person {
-    private final String firstName, lastName;
+    @XmlAttribute("firstName")
+    private final String firstName;
+    @XmlAttribute("lastName")
+    private final String lastName;
+    @XmlElement(namespace = Constants.API, "address")
     private final List<String> address;
     
     private Person() {}
@@ -217,13 +222,10 @@ class Person {
 *       this.address = new ArrayList(address); 
     }
     
-    @XmlAttribute("firstName")
     public String getFirstName() { return firstName; }
     
-    @XmlAttribute("lastName")
     public String getLastName() { return lastName; }
     
-    @XmlElement(namespace = Constants.API, "address")
 *   public List<String> getAddress() { return Collections.unmodifiableList(address); }
 }
 ``` 
@@ -263,7 +265,7 @@ class Person {
 - Oh I'd actually like 
 ```xml
 <birthday>
-      <year>1981</year><month>11</month><day>1</date>
+      <year>1981</year><month>11</month><day>1</day>
 </birthday>
 ```
 
@@ -289,7 +291,7 @@ class PersonV2 {
 }
 ```
 
-- I'd like to accept either a `<Person xmlns="v1">` or a `<Person xmlns="v2">` for my API
+- I'd like to accept either a `<Person xmlns="v1">` or a `<Person xmlns="v2">` for my JAX-RS API
 
 - Anyone? 
 ---
@@ -402,32 +404,31 @@ Protocol<XMLEvent,Person> proto =
   - Take existing streaming concept, make it asynchronous, add in some type safety
 
 - ** Akka streams **
-```
-  Flow<Integer,Integer,NotUsed> delay = 
-      Flow.<Integer>create().delay("1 second");
-  Sink<Integer,CompletionStage<Done>> print = 
-      Sink.foreach(i -> System.out.println(i));
-    
-  Source.range(0, 10000)     // Source<Integer,NotUsed>
-        .via(delay)            // Source<Integer,NotUsed>
-        .to(print)             // RunnableGraph<CompletionStage<Done>>
-        .run(materializer);    // CompletionStage<Done>
-```
   - An asynchronous graph processing framework
   - `Source<T,M>` emits elements of type T
   - `Flow<T,U,M>` consumes elements of type T, emits elements of type U
   - `Sink<T,M>` consumes elements of type T
-
+.mermaid[graph LR
+   source -->|T| flow
+   flow -->|T| sink
+]
+- Materialization
+  - Streams API create a _blueprint_ for streams
+  - Materialization actually runs a stream, returning instance of `M`
 ---
 
 # Introduction to Akka streams
+
+- Print a number once every second
+  - without having 10000000 `Integer` instances in memory
+
 ```
   Flow<Integer,Integer,NotUsed> delay = 
-      Flow.<Integer>create().delay("1 second");
+      Flow.<Integer>create().throttle(1, Duration.of("1 second"), 1, ThrottleMode.Shaping);
   Sink<Integer,CompletionStage<Done>> print = 
       Sink.foreach(i -> System.out.println(i));
     
-  Source.range(0, 10000)       // Source<Integer,NotUsed>
+  Source.range(0, 100000000)   // Source<Integer,NotUsed>
         .via(delay)            // Source<Integer,NotUsed>
         .to(print)             // RunnableGraph<CompletionStage<Done>>
         .run(materializer);    // CompletionStage<Done>
@@ -443,7 +444,7 @@ Protocol<XMLEvent,Person> proto =
 # Introduction to Akka streams
 ```
   Flow<Integer,Integer,NotUsed> delay = 
-      Flow.<Integer>create().delay("1 second");
+      Flow.<Integer>create().throttle(1, Duration.of("1 second"), 1, ThrottleMode.Shaping);
   Sink<Integer,CompletionStage<Done>> print = 
       Sink.foreach(i -> System.out.println(i));
 * Flow<Integer,ByteString,NotUsed> toBytes = Flow.fromFunction(i -> 
@@ -481,13 +482,42 @@ Protocol<XMLEvent,Person> proto =
   - CSV: `CSVEvent` (start line, start column, text, ...)
   
 - Now we can have parsers and generators:
+  - Akka defines an immutable byte array as `ByteString`
+
 ```
-     T             |  Flow[ByteString,T,...]    |    Flow[T,ByteString,...]
+     T             |  Flow<ByteString,T,M>      |    Flow<T,ByteString,M>
      =========================================================================
      XMLEvent      |  AaltoReader.instance      |    StaxWriter.instance
      JSONEvent     |  ActsonReader.instance     |    JacksonWriter.instance
      CSVEvent      |  CSVParser.instance        |    CSVWriter.instance
 ```
+---
+
+# Tying in marshalling and unmarshalling
+
+- Use protocols as an Akka stream stage
+    ```
+    Protocol<XMLEvent,Person> proto =  /* ... */;
+    
+    Flow<ByteString,XMLEvent,NotUsed> parse = AaltoReader.instance;
+    Flow<XMLEvent,ByteString,NotUsed> write = StaxWriter.instance;
+    
+    Flow<XMLEvent,Person,NotUsed> unmarshal = ProtocolReader.of(proto);
+    Flow<Person,XMLEvent,NotUsed> marshal = ProtocolWriter.of(proto);
+    
+    Flow<Person,Person,NotUsed> handle = Flow.<Person>create()
+        .map(p -> p.withName(p.getName().toUpperCase()));
+    ```
+.mermaid[graph LR
+   in -->|ByteString| parse
+   parse -->|XMLEvent| unmarshal
+   unmarshal -->|Person| handle
+   handle -->|Person| marshal
+   marshal -->|XMLEvent| write
+   write -->|ByteString| out
+]
+    
+
 ---
 
 # Implementation progress
@@ -498,12 +528,6 @@ Protocol<XMLEvent,Person> proto =
   - Javaslang collection bindings (`Seq`, `Option`, ...)
   - Scala bindings (in development)
   
-- Use protocols as an Akka stream stage
-    ```
-    Protocol<XMLEvent,Person> proto = ...;
-    Flow<XMLEvent,Person,NotUsed> unmarshal = ProtocolReader.of(proto);
-    Flow<Person,XMLEvent,NotUsed> marshal = ProtocolWriter.of(proto);
-    ```
 - Selectively process parts of a stream: `ProtocolFilter`
     ```
     public static <E> Flow<E, E, NotUsed> filter(ReadProtocol<E,E> selector, Graph<FlowShape<E,E>, ?> target)
@@ -525,14 +549,16 @@ Protocol<XMLEvent, Tuple2<String, String>> in_proto = tag(qname("property"),
     attribute("value")
 );
 
-Protocol<XMLEvent, Tuple2<String, String>> out_proto =  anyTagWithBody.asLocalName();
+Protocol<XMLEvent, Tuple2<String, String>> out_proto = anyTagWithBody.asLocalName();
 
 Source<ByteString, CompletionStage<IOResult>> in = StreamConverters.fromInputStream(() -> System.in);
 Source<XMLEvent, CompletionStage<IOResult>> in_xml = in.via(AaltoReader.instance);
 Source<Tuple2<String, String>, CompletionStage<IOResult>> elements = in_xml.via(ProtocolReader.of(in_proto));
 Source<XMLEvent, CompletionStage<IOResult>> out_xml = elements.via(ProtocolWriter.of(out_proto));
 Source<ByteString, CompletionStage<IOResult>> out_bytes = out_xml.via(StaxWriter.flow());
+
 Sink<ByteString, CompletionStage<IOResult>> out = StreamConverters.fromOutputStream(() -> System.out);
+
 out_bytes.runWith(out, materializer).thenAccept(ioResult -> {
     system.terminate();
 });
@@ -715,8 +741,10 @@ FileIO.fromFile(new File("auctions.json"))
 - Nice properties
   - Compile-time traceability
   - Composable
+    - Re-use, even across XML, JSON and CSV
   - Extensible through simple interfaces
-  - Re-use, even across XML, JSON and CSV
+  - No magic (no annotations / reflection / AOP)
+  - Testable
 
 - Want to get involved?
   - Get:  [https://github.com/Tradeshift/ts-reaktive/](https://github.com/Tradeshift/ts-reaktive/) (`ts-reaktive-marshal-*` modules) 
@@ -731,6 +759,30 @@ class: center, middle
 # Extra slides
 
 ---
+
+# Cores and caches
+
+- Latency Comparison Numbers
+
+```text
+L1 cache reference                           0.5 ns
+Branch mispredict                            5   ns
+L2 cache reference                           7   ns
+Mutex lock/unlock                           25   ns
+Main memory reference                      100   ns
+Compress 1K bytes with Zippy             3,000   ns
+*Context switch                          10,000   ns (if working set in L2)
+Send 1K bytes over 1 Gbps network       10,000   ns
+*Context switch                        >100,000   ns (bigger working set)
+Read 4K randomly from SSD*             150,000   ns
+Read 1 MB sequentially from memory     250,000   ns
+Round trip within same datacenter      500,000   ns
+Read 1 MB sequentially from SSD*     1,000,000   ns
+Disk seek                           10,000,000   ns
+Read 1 MB sequentially from disk    20,000,000   ns
+Send packet CA->Netherlands->CA    150,000,000   ns
+```
+- Keep working on the same data for as long as possible
 
 
     </textarea>
