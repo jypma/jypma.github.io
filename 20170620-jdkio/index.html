@@ -123,6 +123,17 @@ jyp@tradeshift.com
 
 ---
 
+# About 
+
+.center[![Tradeshift](ts.jpg)]
+
+- Platform for Business interactions
+- Procurement, ordering, invoicing, payment, marketplace, ...
+- Builds on **UBL** (Universal Business Language) for open document exchange
+  - [http://docs.oasis-open.org/ubl/UBL-2.1.html](http://docs.oasis-open.org/ubl/UBL-2.1.html)
+  
+---
+  
 # Problem statement
 
 - Tradeshift processes XML documents of > 100MB in size
@@ -320,6 +331,8 @@ class PersonV2 {
 - What if I could just say "_Put the first name into firstName, the last into lastName, and the address into some tags_"
 
 ```
+import static com.tradeshift.reaktive.xml.XMLProtocol.*;
+
 WriteProtocol<XMLEvent,Person> proto = 
   tag(qname(API, "person"),
     Person::getFirstName, attribute(qname("firstName")),
@@ -496,6 +509,8 @@ Protocol<XMLEvent,Person> proto =
 # Tying in marshalling and unmarshalling
 
 - Use protocols as an Akka stream stage
+  - Turn a `Protocol<E,T>` into a `Flow<E,T,M>` _(unmarshal)_ or a `Flow<T,E,M>` _(marshal)_
+
     ```
     Protocol<XMLEvent,Person> proto =  /* ... */;
     
@@ -544,12 +559,14 @@ Protocol<XMLEvent,Person> proto =
 ```
 import static com.tradeshift.reaktive.xml.XMLProtocol.*;
 
-Protocol<XMLEvent, Tuple2<String, String>> in_proto = tag(qname("property"),
-    attribute("name"),
-    attribute("value")
+ReadProtocol<XMLEvent, Tuple2<String, String>> in_proto = anyTag(  // Allow any root tag
+    tag(qname("property"),                                         // Emit tuple per <property>
+        attribute("name"),
+        attribute("value")
+    )
 );
 
-Protocol<XMLEvent, Tuple2<String, String>> out_proto = anyTagWithBody.asLocalName();
+WriteProtocol<XMLEvent, Tuple2<String, String>> out_proto = anyTagWithBody.asLocalName();
 
 Source<ByteString, CompletionStage<IOResult>> in = StreamConverters.fromInputStream(() -> System.in);
 Source<XMLEvent, CompletionStage<IOResult>> in_xml = in.via(AaltoReader.instance);
@@ -575,9 +592,11 @@ StreamConverters
     .fromInputStream(() -> System.in)                        // Source<ByteString, CompletionStage<IOResult>>
     .via(AaltoReader.instance)                               // Source<XMLEvent, CompletionStage<IOResult>>
     .via(ProtocolReader.of(                                  // Source<Tuple2<String, String>,
-        tag(qname("property"),                               //        CompletionStage<IOResult>>
-            attribute("name"),
-            attribute("value")
+        anyTag(                                              //        CompletionStage<IOResult>>
+            tag(qname("property"),
+                attribute("name"),
+                attribute("value")
+            )
         )
     ))
     .via(ProtocolWriter.of(anyTagWithBody.asLocalName()))    // Source<XMLEvent, CompletionStage<IOResult>>
