@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Modern embedded C++</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="animate.min.css">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body { font-family: 'Droid Serif'; }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .hljs-default .hljs {
+        background: #E6E4E4;
+      }
+      .remark-inline-code {
+        background: #E6E4E4;
+      }
+      .small { font-size: 75%; }
+      .smallright { font-size: 90%; text-align: right; margin-top: 8em; }
+      .floatright { 
+        clear: both;
+        float: right; 
+      }
+      
+      .remark-slide-container {
+        visibility: hidden;
+        display: initial;
+      }
+      .remark-visible {
+        visibility: visible;
+      }
+      .remark-slide-content.hljs-default {
+         background-size: 100%; 
+      }
+      .remark-slide-content {
+        background: #F2F4F7;
+         color: #060606;
+         text-shadow: 1px 1px 2px rgba(0,0,0, 0.1);
+      }
+      .center img {
+         background: rgba(255,255,255,0.3);
+         border: 1px solid #EBEBE5;
+         box-shadow: 1px 1px 2px rgba(0,0,0, 0.1);
+      }
+      .floatright img {
+         background: rgba(255,255,255,0.3);
+         border: 1px solid #EBEBE5;      
+         box-shadow: 1px 1px 2px rgba(0,0,0, 0.1);
+      }
+      .good:before { 
+         content: ' '; 
+         display: block; 
+      }
+      .good {
+         color: green;
+      }
+      .bad:before { 
+         content: ' '; 
+         display: block; 
+      }
+      .bad {
+         color: red;
+      }
+      pre {
+         text-shadow: none;
+      }
+      a {
+        color: #7272B6;
+      }
+      .remark-slide-content > ul > li {
+        padding-top: 5px;
+      }
+      h1 {
+        margin-bottom: 19px;
+      }
+      .mermaid {
+        font-size: 16px;
+      }
+      span.edgeLabel {
+        background-color: #F2F4F7;
+      }
+      @media print {
+      .remark-slide-content {
+        text-shadow: none;
+      }      
+      }
+    </style>
+    <!--
+    <link rel="stylesheet" href="https://cdn.rawgit.com/knsv/mermaid/6.0.0/dist/mermaid.css">
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+    <script src="https://cdn.rawgit.com/knsv/mermaid/6.0.0/dist/mermaid.js"></script>
+    -->
+    <link rel="stylesheet" href="mermaid.min.css">
+    <script src="remark-latest.min.js"></script>
+    <script src="mermaid.min.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Type-safe modern embedded development with C++
+
+A journey into year-long uptimes
+
+
+Jan Ypma
+
+jan@ypmania.nl
+
+---
+
+# Agenda
+
+- The start of our journey
+- Arduino's strengths and weaknesses
+- Modern software development
+- Embedded techniques
+    - Unit testability
+    - Continuous integration
+    - Interrupt handlers
+    - Time constants
+
+---
+
+# A little bit about me
+
+- By day
+ - Software architect at [Tradeshift](https://tradeshift.com/about/), a platform for business interaction
+ - Deal with 100K+ LoC code bases on a daily basis
+ - CI/CD, Unit testing, Integration testing, Docker
+- By night
+ - Electrical engineering
+ - Home automation
+ 
+---
+
+# A journey starts
+
+- Let's automate dimming the lights when watching a movie
+
+.center[![Living](livingroom.jpg)]
+
+---
+
+# A journey starts
+
+- **Kodi**
+  - Media center software with JSON API
+
+.floatright[![FS20](fs20-switch.jpg)]
+- **FS20** 
+  - Affordable home automation devices
+  - [Well-documented protocol](http://fhz4linux.info/tiki-index.php?page=FS20+Protocol) on the 868MHz band
+  - Simple on-off keying
+
+.floatright[![Jeenode](jeenode.jpg)]
+- **JeeNode** 
+  - ATMega328 microcontroller
+  - RFM12B 868MHz radio
+  - Arduino software support 
+  - Existing library to transmit FS20 signals
+
+---
+
+# Introducing our hero
+
+.center[![ATMega](atmega.jpg)]
+
+- Atmel (now Microchip) **atmega328p**
+  - 32 KB Flash program ROM
+  - 2KB RAM
+  - 1KB Flash EEPROM
+- Why use something this limited? Power!
+  - 10 μA in sleep (~30 μW)
+  - 8 mA when awake (~30 mW)
+  - Comparison: Raspberry Pi 2000mW, Intel Atom 16000mW
+---
+
+# Arduino: blinking an LED
+
+- Seems simple enough
+
+```
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(1000);
+}
+```
+
+--
+
+- However
+  - What is `LED_BUILTIN`?
+  - `digitalWrite(HIGH, LED_BUILTIN);`
+  - Where is `main()`?
+
+---
+
+# Arduino: blinking an LED
+
+- Let's look it up
+- In `pins_arduino.h`: 
+
+```
+#define LED_BUILTIN 13
+```
+
+- In `Arduino.h`: 
+
+```
+#define HIGH 0x1
+#define LOW  0x0
+
+#define INPUT 0x0
+#define OUTPUT 0x1
+```
+
+- So, we're actually saying `digitalWrite(19, 1);`
+- Wait, they said this was C++?
+
+---
+
+# Arduino: blinking an LED
+
+- Let's hunt down `main()`  
+- Ah, in `cores/arduino/main.cpp`:
+
+```
+int main(void)
+{
+* init();
+  // [...]
+  setup();
+    
+  for (;;) {
+    loop();
+    // [...]
+  }
+  return 0;
+}
+
+```
+
+---
+
+# Arduino: blinking an LED
+
+- And, `wiring.c`:
+
+```
+void init()
+{
+#if defined(TCCR0A) && defined(WGM01)
+	sbi(TCCR0A, WGM01);
+	sbi(TCCR0A, WGM00);
+#endif
+
+#if defined(__AVR_ATmega128__)
+	sbi(TCCR0, CS02);
+#elif defined(TCCR0) && defined(CS01) && defined(CS00)
+	sbi(TCCR0, CS01);
+	sbi(TCCR0, CS00);
+#elif defined(TCCR0B) && defined(CS01) && defined(CS00)
+	sbi(TCCR0B, CS01);
+	sbi(TCCR0B, CS00);
+#elif defined(TCCR0A) && defined(CS01) && defined(CS00)
+	sbi(TCCR0A, CS01);
+	sbi(TCCR0A, CS00);
+#else
+	#error Timer 0 prescale factor 64 not set correctly
+#endif
+
+  // 150 more lines of #define and direct register mangling
+}
+```
+
+---
+
+# The arduino ecosystem
+
+- Works well
+  - Libraries available for any hardware you can imagine
+  - They generally do work
+  - Very broad community with good hardware tips
+  - Useable defaults for AVR initialization
+- Works not so well
+  - AVR initialization isn't customizable
+  - Libraries not necessarily work _together_ (no HAL, no way to declare interrupt handlers)
+  - Libraries have no unit tests
+  - The core has no unit tests
+- Code basically gets written, tested on hardware, and then "don't touch it"
+- RFM12 Arduino library is a good example of the above
+- Oh, and no `Makefile` or build system of any kind
+
+We must be able to do better than this!
+
+
+---
+
+# Introducing AvrLib
+
+- An attempt to increase maintainability of C++ AVR code
+- Let's blink an LED, again
+
+```
+#include "HAL/Atmel/Device.hpp"
+#include "Time/RealTimer.hpp"
+
+using namespace HAL::Atmel;
+using namespace Time;
+
+auto LED = ArduinoPinD9();
+auto timer0 = Timer0::withPrescaler<1024>::inNormalMode();
+auto rt = realTimer(timer0);
+
+int main() {
+  LED.configureAsOutputLow();
+  while (true) {
+    LED.setHigh();
+    rt.delay(1_s);
+    LED.setLow();
+    rt.delay(1_s);
+  }
+}
+```
+
+---
+
+# Type-safe pins
+
+```
+*auto LED = ArduinoPinD9();
+auto timer0 = Timer0::withPrescaler<1024>::inNormalMode();
+auto rt = realTimer(timer0);
+
+int main() {
+  LED.configureAsOutputLow();
+  while (true) {
+    LED.setHigh();
+    rt.delay(1_s);
+    LED.setLow();
+    rt.delay(1_s);
+  }
+}
+```
+
+- Pins are type-safe
+  - Different AVR pins have different features, and each pin has its own class
+  - Doing `myPin.comparator().setTarget(15)` on a non-PWM pin is a compile error
+
+---
+
+# Type-safe time handling
+
+```
+auto LED = ArduinoPinD9();
+auto timer0 = Timer0::withPrescaler<1024>::inNormalMode();
+*auto rt = realTimer(timer0);
+
+int main() {
+  LED.configureAsOutputLow();
+  while (true) {
+    LED.setHigh();
+*   rt.delay(1_s);
+    LED.setLow();
+    rt.delay(1_s);
+  }
+}
+```
+
+- Time is type-safe
+  - Converting timer units to real time units is externalized to `RealTimer`
+     - And, hence, can be [unit tested](https://github.com/jypma/AvrLib/blob/master/tst/RealTimerTest.cpp)
+  - `RealTimer` works on any timer, and any prescaler
+  - Conversion factors are compile-time known, so `delay(1_s)` compiles down to a  constant
+  - Compiler error if using too small or too large time constants
+
+_Note_: Prefer using `periodic` or `deadline` instead of `delay`.
+
+---
+
+# Encapsulation and testability
+
+- Having all your code in `main.cpp` makes it kinda hard to unit test
+- Write a class instead for your app
+
+```
+#define auto_var(name, expr) decltype(expr) name = expr  // pre-C++ 17
+
+template<typename led_t, typename timer_t>
+class Blink {
+  led_t * const LED;
+  timer_t * const timer;
+  
+  auto_var(rt, realTimer(*timer));
+public:
+  Blink(led_t &l, timer_t &t): LED(&l), timer(&t) {
+    LED->configureAsOutputLow();
+  }
+  
+  void loop() {
+    LED->setHigh();
+    rt.delay(1_s);
+    LED->setLow();
+    rt.delay(1_s);
+  }
+};
+```
+
+---
+
+# Interrupts
+
+- Original problem: interrupt handlers are global-scope `"C"` style functions in `avr-gcc`
+- Solution: framework takes ownership of these handlers, delegating to user class member functions
+  - A bit of macro, a lot of `type_traits`
+  
+```
+class MyApp {
+  auto_var(button, ArduinoPinD8());  
+  void onButton() { /* handle button press */ }
+
+public:
+  typedef On<MyApp, typename button::INT, &MyApp:onButton> Handlers;
+  void loop() { /* main application loop */ }
+};
+
+RUN_APP(MyApp)  // declares main() and interrupt handlers
+```
+
+- Handlers are known at compile time, so optimizer can fully inline them
+- Handlers can be composed, e.g.
+  ```
+    typedef On<MyApp, typename button::INT, &MyApp:onButton,
+            Delegate<MyApp, decltype(blink), &MyApp::blink>> handlers;
+  ```
+---
+
+# Testing at any level
+
+- Let's take a closer look at `RealTimer`
+  - Unit testable, since there are no direct dependencies on avr-libc
+  - [Tests](https://github.com/jypma/AvrLib/blob/master/tst/RealTimerTest.cpp#L34) using Google Test
+  - [Implementation](https://github.com/jypma/AvrLib/blob/master/inc/Time/RealTimer.hpp#L41)
+
+---
+
+# Continuous integration
+
+- GCC (and avr-gcc) is a particularly troubled piece of software
+  - Most major upgrades I've tried hit ICE's
+  - Currently, avr-gcc 5.4.0 and 7.2.0 seem to build correctly
+- Solution: [docker container with working version](https://github.com/jypma/avr-gcc)
+- Build `AvrLib` on Travis CI using [`Makefile`](https://github.com/jypma/AvrLib): ![Build status](https://travis-ci.org/jypma/AvrLib.svg?branch=master)
+
+---
+
+# Status
+
+- Powering about 100 devices
+- Tests pay off: if devices fail, it's usually hardware
+- Drivers for RFM, Pulse counting, Pulse sending, RS-232, IR decoding, ...
+- Unified streams library with Protobuf support
+
+
+- Future work
+  - Ditch `avr-libc`
+  - Create (generate) [type-safe registers](https://github.com/jypma/AvrLib/pull/17/files)
+  - Move to [ARM and/or Rust](https://japaric.github.io/discovery/)?
+
+
+Source: [https://github.com/jypma/AvrLib/](https://github.com/jypma/AvrLib/)
+Demos: [https://github.com/jypma/AvrLibDemo/tree/master/apps](https://github.com/jypma/AvrLibDemo/tree/master/apps)
+
+---
+
+class: center, middle
+
+# Extra slides
+
+---
+
+# Blinking while doing other stuff
+
+```
+template<typename led_t, typename timer_t>
+class Blink {
+  led_t * const LED;
+  timer_t * const timer;
+  bool on = false;
+  
+  auto_var(rt, realTimer(*timer));
+  auto_var(toggle, periodic(rt, 500_ms));
+public:
+  Blink(led_t &l, timer_t &t): LED(&l), timer(&t) {
+    LED->configureAsOutputLow();
+  }
+  
+  void loop() {
+    if (toggle.isNow()) {
+      on = !on;
+      LED->setHigh(on);
+    }
+  }
+};
+```
+
+---
+
+# Let's build a `Button` class
+
+```
+enum class ButtonEvent: uint8_t { DOWN, UP, PRESSED, RELEASED };
+
+template <typename pin_t>
+class Button {
+  pin_t * const pin;
+  
+public:
+  Button(pin_t &p): pin(&p) {}
+  
+  ButtonEvent nextEvent() { /* ... */ }
+}
+```
+    </textarea>
+    <script>
+      var slideshow = remark.create({
+          ratio: '16:9',
+          highlightLanguage: "cpp",
+          highlightLines: true
+      });
+      mermaid.initialize({startOnLoad:false, cloneCssStyles: false});
+      
+      function initMermaid(s) {
+        var diagrams = document.querySelectorAll('.mermaid');
+        var i;
+        for(i=0;i<diagrams.length;i++){
+          if(diagrams[i].offsetWidth>0){
+            //console.log(diagrams[i]);
+            //console.log(diagrams[i].childNodes[0]);
+            var graphDefinition = diagrams[i].childNodes[0].childNodes[0].nodeValue;
+            //console.log(graphDefinition);
+            
+            var insertSvg = function(svgCode, bindFunctions){
+                //console.log(svgCode);
+                diagrams[i].childNodes[0].innerHTML = svgCode;
+            };
+            
+            var graph = mermaidAPI.render('graphDiv' + i, graphDefinition, insertSvg);
+          }
+        }
+      }
+      slideshow.on('afterShowSlide', initMermaid);
+      initMermaid(slideshow.getSlides()[slideshow.getCurrentSlideIndex()]);
+
+    </script>
+</html>
