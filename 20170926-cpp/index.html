@@ -132,9 +132,10 @@ jan@ypmania.nl
 # A little bit about me
 
 - By day
- - Software architect at [Tradeshift](https://tradeshift.com/about/), a platform for business interaction
+ - Software architect at [Tradeshift](https://tradeshift.com/about/), a platform for business interactions
  - Deal with 100K+ LoC code bases on a daily basis
  - CI/CD, Unit testing, Integration testing, Docker
+
 - By night
  - Electrical engineering
  - Home automation
@@ -228,7 +229,7 @@ void loop() {
 #define OUTPUT 0x1
 ```
 
-- So, we're actually saying `digitalWrite(19, 1);`
+- So, we're actually saying `digitalWrite(13, 1);`
 - Wait, they said this was C++?
 
 ---
@@ -470,10 +471,12 @@ RUN_APP(MyApp)  // declares main() and interrupt handlers
 
 # Status
 
+.floatright[![Monitor](monitor.svg)]
+
 - Powering about 100 devices
 - Tests pay off: if devices fail, it's usually hardware
-- Drivers for RFM, Pulse counting, Pulse sending, RS-232, IR decoding, ...
-- Unified streams library with Protobuf support
+- Streams library with Protobuf support
+- Drivers for RFM12B radio, ESP8266 in AT mode, RS-232, IR decoding, temperature sensors, and more
 
 
 - Future work
@@ -483,6 +486,7 @@ RUN_APP(MyApp)  // declares main() and interrupt handlers
 
 
 Source: [https://github.com/jypma/AvrLib/](https://github.com/jypma/AvrLib/)
+
 Demos: [https://github.com/jypma/AvrLibDemo/tree/master/apps](https://github.com/jypma/AvrLibDemo/tree/master/apps)
 
 ---
@@ -520,7 +524,7 @@ public:
 
 ---
 
-# Let's build a `Button` class
+# Let's build a Button class
 
 ```
 enum class ButtonEvent: uint8_t { DOWN, UP, PRESSED, RELEASED };
@@ -535,6 +539,80 @@ public:
   ButtonEvent nextEvent() { /* ... */ }
 }
 ```
+
+- Main loop polls nextEvent() to see what happened
+
+---
+
+# Let's build a Button class
+
+```
+enum class ButtonEvent: uint8_t { DOWN, UP, PRESSED, RELEASED };
+
+template <typename pin_t>
+class Button {
+  typedef Button<pin_t> This;
+  pin_t * const pin;
+  bool prevState;                     // state before last call to nextEvent()
+  volatile bool gotINT = false;       // have we seen an interrupt since nextEvent() ?
+  
+  void onINT() {
+    gotINT = true;
+  }
+  
+public:
+  typedef On<This, typename pin_t::INT, &This::onINT> Handlers;
+
+  Button(pin_t &p): pin(&p) {
+    pin->configureAsInputWithPullup();
+    pin->interruptOnChange();
+    prevState = pin->isHigh();
+  }
+  
+  ButtonEvent nextEvent() { /* ... */ }
+}
+```
+
+- Update our state when an interrupt fires
+
+---
+
+# Let's build a Button class
+
+```
+enum class ButtonEvent: uint8_t { DOWN, UP, PRESSED, RELEASED };
+
+template <typename pin_t>
+class Button {
+  typedef Button<pin_t> This;
+  pin_t * const pin;
+  bool prevState;                     // state before last call to nextEvent()
+  volatile bool gotINT = false;       // have we seen an interrupt since nextEvent() ?
+  // [...]
+public:
+  ButtonEvent nextEvent() {
+    const bool state = pin->isHigh();
+    if (state == prevState) {
+      return (state) ? ButtonEvent::UP : ButtonEvent.DOWN;
+    } else {
+      return (state) ? ButtonEvent::RELEASED : ButtonEvent::PRESSED;
+    }
+  }
+}
+```
+- Compare with previous state and emit event, simple enough. But:
+  - Shouldn't we use `gotINT` somehow?
+  - What if the user manages to press -> release the button between two `nextEvent()` calls?
+  - We need to handle [button debounce](https://www.allaboutcircuits.com/technical-articles/switch-bounce-how-to-deal-with-it/)
+
+---
+
+# Let's build a Button class
+
+- Turns out, handling a simple [Button](https://github.com/jypma/AvrLib/blob/master/inc/Mechanic/Button.hpp) isn't so simple in the real world (~100 lines).
+- Luckily, we have [unit tests](https://github.com/jypma/AvrLib/blob/master/tst/ButtonTest.cpp) to prove that our button works (~70 lines).
+- All code is reusable since it isn't AVR-specific.
+
     </textarea>
     <script>
       var slideshow = remark.create({
