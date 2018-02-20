@@ -2,7 +2,7 @@ class: center, middle
 
 # Reactive user interfaces
 
-Because the frontend ❤ buzzwords
+Because frontenders also ❤ buzzwords
 
 
 Jan Ypma
