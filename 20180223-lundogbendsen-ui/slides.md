@@ -273,6 +273,10 @@ This is fully type-safe Scala code.
 - More modular and expressive code
 - One language across client and server
 - Tool-friendly and better IDE support
+- You always have types, even though you may not see them
+  - _[using Flow or TypeScript could
+have prevented 15% of bugs for public projects on
+GitHub](http://ttendency.cs.ucl.ac.uk/projects/type_study/documents/type_study.pdf)_
 
 ---
 
