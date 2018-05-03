@@ -1,0 +1,580 @@
+class: center, middle
+
+* Reactive user interfaces
+  :PROPERTIES:
+  :CUSTOM_ID: reactive-user-interfaces
+  :END:
+
+Because frontenders ❤ buzzwords
+
+Jan Ypma
+
+jyp@tradeshift.com
+
+--------------
+
+* Agenda
+  :PROPERTIES:
+  :CUSTOM_ID: agenda
+  :END:
+
+- Rationale for rethinking Tradeshift's documents and editing
+- Something about languages and type safety...
+- Reactive editing architecture
+- Demo
+
+--------------
+
+* Setting the scene
+  :PROPERTIES:
+  :CUSTOM_ID: setting-the-scene
+  :END:
+
+- /Tradeshift: A platform for business interactions/
+
+- UBL (Universal Business Language)
+
+  - A set of 65 (huge)
+    [[https://cranesoftwrights.github.io/resources/Crane-UBL-2.1-Skeleton/][XSDs]]
+    for describing business interactions in XML
+  - An [[file:invoice-with-features.xml][example invoice]]
+
+- Current systems throughput of ~10 documents per second
+
+--------------
+
+* Documents in Tradeshift, 2017
+  :PROPERTIES:
+  :CUSTOM_ID: documents-in-tradeshift-2017
+  :END:
+
+- Monolith backend knows about at least 6 different document formats
+
+  - UBL, "jacksonified" JSON UBL, "official" JSON UBL, Portable (xml),
+    Portable (JSON), Canonical
+  - These are not convertable into each other without loss
+
+- Sending a document requires it to go through several message queues
+
+  - We have trouble growing HornetQ to our size
+
+- Document "validations" are hardcoded, and scattered around many
+  different places
+- Document types are hardcoded
+
+  - Introducing a new document type requires changes in 15+ places
+  - As a result, existing document types have /very/ varying behaviours
+
+- Documents are isolated to one account
+
+  - Sending only happens once, and as an actual copy
+
+--------------
+
+* Documents in Tradeshift, 2020
+  :PROPERTIES:
+  :CUSTOM_ID: documents-in-tradeshift-2020
+  :END:
+
+- Pipeline can send 100s of documents per second, and can scale to 1000s
+- Format conversions are well-defined and isolated
+- New document types and validations can be introduced by anyone /on the
+  Tradeshift network/
+- People can collaborate on documents in real-time, across legal regions
+
+--------------
+
+* Event journal
+  :PROPERTIES:
+  :CUSTOM_ID: event-journal
+  :END:
+
+.center[[[file:journal.svg]]]
+
+- Real-time collaboration requires delta updates
+- No "replace content" API
+
+  - Instead, all edits must be saved as incremental changes
+  - Edits appear on the event stream
+
+--------------
+
+* Writing a document editor
+  :PROPERTIES:
+  :CUSTOM_ID: writing-a-document-editor
+  :END:
+
+- Traditionally .center[[[file:editor_old.svg]]]
+
+  - Read the whole UBL XML document
+  - Transform it into a JSON variant
+  - Transform it into an in-memory structure
+  - Transform it into user interface elements
+
+- User changed anything on the screen?
+
+  - Do the above in reverse
+
+- Another user changed anything?
+
+  - Repeat the whole flow again
+
+--------------
+
+* Writing a reactive document editor
+  :PROPERTIES:
+  :CUSTOM_ID: writing-a-reactive-document-editor
+  :END:
+
+- Define things that constitute changes to a document
+
+  - ** let's call them *events* (Redux: /action/, Elm: /message/)
+       :PROPERTIES:
+       :CUSTOM_ID: lets-call-them-events-redux-action-elm-message
+       :END:
+
+    .center[[[file:editor_new.svg]]]
+
+- Transform a /stream/ of these changes directly into user interface
+  elements
+- User changed anything on the screen?
+
+  - Emit an event, and make sure it appears on the event stream
+
+- Another user changed anything?
+
+  - Automatically handled as long as it hits the event stream
+
+--------------
+
+* Editing UBL, one field at a time
+  :PROPERTIES:
+  :CUSTOM_ID: editing-ubl-one-field-at-a-time
+  :END:
+
+.floatleft[[[file:example-edit.svg]]]
+
+- Start at the document root
+- Amongst the [[http://www.datypic.com/sc/ubl21/ns-cac.html][Aggregate
+  tag (cac:)]]
+  [[http://www.datypic.com/sc/ubl21/e-cac_InvoiceLine.html][InvoiceLine]],
+  locate the one that has /inside/ a
+  [[http://www.datypic.com/sc/ubl21/t-udt_IdentifierType.html][udt:IdentifierType
+  tag]] [[http://www.datypic.com/sc/ubl21/t-cbc_IDType.html][ID]], with
+  value ="10"=, or create such an =InvoiceLine= if it doesn't exist yet.
+- Inside here, find the
+  [[http://www.datypic.com/sc/ubl21/ns-cac.html][Aggregate tag (cac:)]]
+  [[http://www.datypic.com/sc/ubl21/e-cac_Item.html][Item]], or create
+  it if it doesn't exist. /(The XSD prescribes that only one =Item=
+  exists here, so no "selection" applies)/.
+- Inside here, find the
+  [[http://www.datypic.com/sc/ubl21/t-udt_NameType.html][udt:NameType]]
+  tag [[http://www.datypic.com/sc/ubl21/t-cbc_NameType.html][Name]] or
+  create it, and replace its value with ="Widgets"=.
+
+--------------
+
+* Editing UBL, one field at a time
+  :PROPERTIES:
+  :CUSTOM_ID: editing-ubl-one-field-at-a-time-1
+  :END:
+
+.floatleft[[[file:example-edit.svg]]]
+
+#+BEGIN_EXAMPLE
+    <!-- Before applying edit: -->
+    <Invoice xmlns="..." xmlns:cac="..." xmlns:cbc="...">
+    </Invoice>
+#+END_EXAMPLE
+
+/turns into/
+
+#+BEGIN_EXAMPLE
+    <!-- After applying edit: -->
+    <Invoice xmlns="..." xmlns:cac="..." xmlns:cbc="...">
+      <cac:InvoiceLine>
+        <cbc:ID>10</cbc:ID>
+        <cac:Item>
+          <cbc:Name>Widgets</cbc:Name>
+        </cac:Item>
+      </cac:InvoiceLine>
+    </Invoice>
+#+END_EXAMPLE
+
+--------------
+
+* Editing UBL, one field at a time
+  :PROPERTIES:
+  :CUSTOM_ID: editing-ubl-one-field-at-a-time-2
+  :END:
+
+.floatleft[[[file:example-edit.svg]]]
+
+#+BEGIN_EXAMPLE
+    <!-- Before applying edit: -->
+    <Invoice xmlns="..." xmlns:cac="..." xmlns:cbc="...">
+      <cac:InvoiceLine>
+        <cbc:ID>10</cbc:ID>
+        <cac:Note>This is my precious line.</cac:Note>
+      </cac:InvoiceLine>
+    </Invoice>
+#+END_EXAMPLE
+
+/Existing information remains unchanged:/
+
+#+BEGIN_EXAMPLE
+    <!-- After applying edit: -->
+    <Invoice xmlns="..." xmlns:cac="..." xmlns:cbc="...">
+      <cac:InvoiceLine>
+        <cbc:ID>10</cbc:ID>
+        <cac:Note>This is my precious line.</cac:Note>
+        <cac:Item>
+          <cbc:Name>Widgets</cbc:Name>
+        </cac:Item>
+      </cac:InvoiceLine>
+    </Invoice>
+#+END_EXAMPLE
+
+--------------
+
+* Editing UBL, one field at a time
+  :PROPERTIES:
+  :CUSTOM_ID: editing-ubl-one-field-at-a-time-3
+  :END:
+
+.floatleft[[[file:example-edit.svg]]]
+
+#+BEGIN_EXAMPLE
+    <!-- Before applying edit: -->
+    <Invoice xmlns="..." xmlns:cac="..." xmlns:cbc="...">
+      <cac:InvoiceLine>
+        <cbc:ID>10</cbc:ID>
+        <cac:Item>
+          <cbc:Name>Stuff</cbc:Name>
+        </cac:Item>
+      </cac:InvoiceLine>
+    </Invoice>
+#+END_EXAMPLE
+
+/Replace =InvoiceLine/Item/Name=, keep the rest:/
+
+#+BEGIN_EXAMPLE
+    <!-- After applying edit: -->
+    <Invoice xmlns="..." xmlns:cac="..." xmlns:cbc="...">
+      <cac:InvoiceLine>
+        <cbc:ID>10</cbc:ID>
+        <cac:Item>
+          <cbc:Name>Widgets</cbc:Name>
+        </cac:Item>
+      </cac:InvoiceLine>
+    </Invoice>
+#+END_EXAMPLE
+
+--------------
+
+class: center, middle
+
+* Something something typo-safety
+  :PROPERTIES:
+  :CUSTOM_ID: something-something-typo-safety
+  :END:
+
+--------------
+
+* Intermezzo
+  :PROPERTIES:
+  :CUSTOM_ID: intermezzo
+  :END:
+
+What does this JavaScript do?
+
+#+BEGIN_EXAMPLE
+    var xhr = new XMLHttpRequest()
+    xhr.open("GET",
+      "https://api.twitter.com/1.1/search/" +
+      "tweets.json?q=%23javascript"
+    )
+    xhr.onload = (e: Event) => {
+      if (xhr.status == 200) {
+        var r = JSON.parse(xhr.responseTest)
+        $("#tweets").html(parseTweets(r))
+      }
+    }
+    xhr.send()
+#+END_EXAMPLE
+
+.smallright[\_ * 2016, Otto Chrons, Scala.js for large and complex
+frontend apps\_]
+
+--------------
+
+* Intermezzo
+  :PROPERTIES:
+  :CUSTOM_ID: intermezzo-1
+  :END:
+
+Is this really JavaScript? Look again!
+
+#+BEGIN_EXAMPLE
+    var xhr = new XMLHttpRequest()
+    xhr.open("GET",
+      "https://api.twitter.com/1.1/search/" +
+      "tweets.json?q=%23javascript"
+    )
+    *xhr.onload = (e: Event) => {
+      if (xhr.status == 200) {
+        var r = JSON.parse(xhr.responseTest)
+        $("#tweets").html(parseTweets(r))
+      }
+    }
+    xhr.send()
+#+END_EXAMPLE
+
+This is fully type-safe Scala code.
+
+--------------
+
+* What is ScalaJS?
+  :PROPERTIES:
+  :CUSTOM_ID: what-is-scalajs
+  :END:
+
+- Write Scala, compile to JavaScript, run in browser or NodeJS
+- Supports 100% of Scala language
+- Straightforward interop with JavaScript (even dynamic typing)
+- Performs as well as hand-written JavaScript
+- Generated JS code is small enough for desktop usage (perhaps mobile)
+
+  - Our PoC: 1.6MB (that's including ProtoBuf generated classes, full
+    CLDR, streams library, everything).
+
+- Fast edit-compile-run cycle
+- Only a language, not an architecture
+
+--------------
+
+* Why a better JavaScript?
+  :PROPERTIES:
+  :CUSTOM_ID: why-a-better-javascript
+  :END:
+
+- Types: testability, refactoring, discoverability
+- More modular and expressive code
+- One language across client and server
+- Tool-friendly and better IDE support
+- You always have types, even though you may not see them
+
+  - /[[http://ttendency.cs.ucl.ac.uk/projects/type_study/documents/type_study.pdf][using
+    Flow or TypeScript could have prevented 15% of bugs for public
+    projects on GitHub]]/
+
+--------------
+
+* In-browser state management
+  :PROPERTIES:
+  :CUSTOM_ID: in-browser-state-management
+  :END:
+
+.center[[[file:edit-pipeline-with-output.svg]]]
+
+- Our *Event* is a
+  [[https://github.com/Tradeshift/document-core/blob/master/document-core-server/src/main/protobuf/UBLDocumentEdit.proto#L22][=UBLDocumentEdit=]],
+  a single edit to a document
+- Define intermediate
+  [[https://github.com/Tradeshift/document-editor/blob/master/data/src/main/scala/com/tradeshift/documents/state/Invoice.scala#L18][DTO
+  classes]] that holds our on-screen state
+
+  - Immutable to make testing easier
+  - Returns updated instance as result of event
+  - [[https://github.com/Tradeshift/document-editor/blob/master/data/src/test/scala/com/tradeshift/documents/state/InvoiceSpec.scala#L30][Unit-testable]]
+    outside of reactive framework
+
+- State classes map to (virtual) DOM,
+  [[https://github.com/Tradeshift/document-editor/blob/master/frontend/src/main/scala/com/tradeshift/documents/invoice/LineComponent.scala#L128][=example render() function=]]
+
+--------------
+
+class: center, middle
+
+* Demo
+  :PROPERTIES:
+  :CUSTOM_ID: demo
+  :END:
+
+--------------
+
+* Editor architecture
+  :PROPERTIES:
+  :CUSTOM_ID: editor-architecture
+  :END:
+
+.center[[[file:editor_arch.svg]]]
+
+- Backend core system =document-core= has journal of initial uploads,
+  edits, and metadata
+- =document-editor= does server side rendering and event security
+  isolation
+
+--------------
+
+* A few words about performance
+  :PROPERTIES:
+  :CUSTOM_ID: a-few-words-about-performance
+  :END:
+
+- 500 events render in 10ms
+- Cassandra ordering journal on disk
+- Protobuf deserialization
+- Snapshots
+- Event stream latency
+
+--------------
+
+* Choosing ScalaJS for this application
+  :PROPERTIES:
+  :CUSTOM_ID: choosing-scalajs-for-this-application
+  :END:
+
+- Not the first choice
+
+  - /React + Redux + Typescript/: not an obvious fit, not full type
+    safety
+  - /React + Redux (plain JS)/: Too verbose code (e.g. event matching)
+  - /Elm/: Small developer community, maturity, client-side only
+
+- But a very nice fit
+
+  - Very mature language and type system
+  - Built-in immutability, futures, pattern matching
+  - Surprisingly big community
+
+--------------
+
+* Conclusion
+  :PROPERTIES:
+  :CUSTOM_ID: conclusion
+  :END:
+
+- Real-time collaboration: working
+- Reactive style increases testability and state management
+- Language: type safety and pattern matching
+- Code reuse between server and browser
+
+--------------
+
+* Extra slides
+  :PROPERTIES:
+  :CUSTOM_ID: extra-slides
+  :END:
+
+--------------
+
+* Document-core architecture
+  :PROPERTIES:
+  :CUSTOM_ID: document-core-architecture
+  :END:
+
+.center[[[file:doccore.svg]]]
+
+- *document-core* : storage, access control, legal state, regionality
+
+  - Plugins listen to its event journals and call back
+
+- *document type plugins* : manage XSD for a particular type of document
+- *validator plugins* : contribute to decide whether the legal state is
+  OK to change to "sent"
+- *augmentor plugins* : contribute additional edits whenever the
+  document is changed (e.g. totals)
+
+--------------
+
+* Document-core pipeline
+  :PROPERTIES:
+  :CUSTOM_ID: document-core-pipeline
+  :END:
+
+.floatright[[[file:pipeline.svg]]]
+
+- Documents are not copied
+
+  - Sender and receiver use the same UUID
+
+- Instead, document legal state is maintained
+
+  - *Draft*: people with write access can edit the document. Validation
+    plugins contribute to whether the document is valid for sending or
+    not
+  - *Sent*: document was valid, and now has legal status. In addition,
+    receiver gets access (in default scenario)
+
+- No way to undo sending
+- No hard deletions (except for "wipe account" scenarios)
+
+--------------
+
+* Pluggable document types
+  :PROPERTIES:
+  :CUSTOM_ID: pluggable-document-types
+  :END:
+
+- What's the big deal?
+
+  - Tradeshift Platform doesn't want to OK every new doc type
+  - Allow teams, integrators, users to experiment
+
+- But we do want /some/ say on what's stored as a document
+
+  - Pipeline implies knowing a /sender/ and /receiver/
+  - Real-time editing needs common primitive building blocks
+
+- UBL to the rescue: pluggable document types can use components from
+  the following UBL namespaces, and group them into new aggregates
+
+  - =CommonAggregateComponents-2=
+  - =CommonBasicComponents-2=
+  - =CommonExtensionComponents-2=
+  - =QualifiedDataTypes-2=
+  - =UnqualifiedDataTypes-2=
+  - (and a few others)
+
+- Document type plugin uploads an XSD to =document-core=
+- XSDs are identified by their namespace
+
+  - =xsd:annotation= indicating what's the sender and receiver
+
+--------------
+
+* Multiple regions
+  :PROPERTIES:
+  :CUSTOM_ID: multiple-regions
+  :END:
+
+.center[[[file:regions.svg]]]
+
+- Each document maintains a set of regions it is visible to
+
+  - Granting an off-region user access to the document adds to this list
+
+- Only on the "home" region can a document be written to (edited)
+- All other regions receive read-only copies of events
+
+--------------
+
+#+BEGIN_EXAMPLE
+    curl -v -X POST \
+             -H 'X-Tradeshift-ActorId: 784cfacd-8e63-4a08-b823-2c094aaf0f0c' \
+             -H 'X-Tradeshift-TenantId: a0b6e3f6-54e9-4bc1-bd82-f088466acee4' \
+             -H 'Content-Type:application/x-vnd.tradeshift.TSUBL' \
+             -d @document-core-server/src/test/resources/smallubl.xml \
+             http://localhost:8865/documents
+             
+    curl -v \
+             -H 'X-Tradeshift-ActorId: 784cfacd-8e63-4a08-b823-2c094aaf0f0c' \
+             -H 'X-Tradeshift-TenantId: a0b6e3f6-54e9-4bc1-bd82-f088466acee4' \
+             http://localhost:8865/documents/3eaa4f97-1080-4db0-862d-7c810ebf8031 \
+             | xmllint --format -
+
+    http://localhost:8080/documents/3eaa4f97-1080-4db0-862d-7c810ebf8031
+
+    172.17.0.83
+#+END_EXAMPLE
