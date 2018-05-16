@@ -62,7 +62,7 @@ jyp@tradeshift.com
 
 # Event journal
 
-.center[![doccore](journal.svg)]
+.center[![doccore](journal.svg.png)]
 
 - Real-time collaboration requires delta updates
 - No "replace content" API
@@ -279,6 +279,15 @@ GitHub](http://ttendency.cs.ucl.ac.uk/projects/type_study/documents/type_study.p
 
 ---
 
+# Editor architecture
+
+.center[![arch](editor_arch.svg)]
+
+- Backend core system `document-core` has journal of initial uploads, edits, and metadata
+- `document-editor` does server side rendering and event security isolation
+
+---
+
 # In-browser state management
 
 .center[![state](edit-pipeline-with-output.svg)]
@@ -299,15 +308,6 @@ GitHub](http://ttendency.cs.ucl.ac.uk/projects/type_study/documents/type_study.p
 class: center, middle
 
 # Demo
-
----
-
-# Editor architecture
-
-.center[![arch](editor_arch.svg)]
-
-- Backend core system `document-core` has journal of initial uploads, edits, and metadata
-- `document-editor` does server side rendering and event security isolation
 
 ---
 
@@ -403,7 +403,6 @@ class: center, middle
   - Granting an off-region user access to the document adds to this list
 - Only on the "home" region can a document be written to (edited)
 - All other regions receive read-only copies of events
-
 
 ---
 
