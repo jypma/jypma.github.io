@@ -282,10 +282,16 @@ GitHub](http://ttendency.cs.ucl.ac.uk/projects/type_study/documents/type_study.p
 
 # Editor architecture
 
-.center[![arch](editor_arch.svg)]
+.center[![arch](editor_arch.svg.png)]
 
 - Backend core system `document-core` has journal of initial uploads, edits, and metadata
 - `document-editor` does server side rendering and event security isolation
+
+---
+
+class: center, middle
+
+# Demo
 
 ---
 
@@ -303,12 +309,6 @@ GitHub](http://ttendency.cs.ucl.ac.uk/projects/type_study/documents/type_study.p
   - Returns updated instance as result of event
   - [Unit-testable](https://github.com/Tradeshift/document-editor/blob/master/data/src/test/scala/com/tradeshift/documents/state/InvoiceSpec.scala#L30) outside of reactive framework
 - State classes map to (virtual) DOM, [`example render() function`](https://github.com/Tradeshift/document-editor/blob/master/frontend/src/main/scala/com/tradeshift/documents/invoice/LineComponent.scala#L128)
-
----
-
-class: center, middle
-
-# Demo
 
 ---
 

@@ -15,7 +15,11 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.2 2405546, 2018-03-11"
-   sodipodi:docname="editor_arch.svg">
+   sodipodi:docname="editor_arch.svg"
+   enable-background="new"
+   inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/editor_arch.svg.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96">
   <defs
      id="defs2">
     <marker
@@ -125,6 +129,16 @@
          transform="matrix(-0.8,0,0,-0.8,-10,0)"
          inkscape:connector-curvature="0" />
     </marker>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter5080">
+      <feBlend
+         inkscape:collect="always"
+         mode="exclusion"
+         in2="BackgroundImage"
+         id="feBlend5082" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -134,7 +148,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="86.066259"
+     inkscape:cx="82.612596"
      inkscape:cy="189.7091"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -164,7 +178,8 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-14.98546,-85.262466)">
+     transform="translate(-14.98546,-85.262466)"
+     style="filter:url(#filter5080)">
     <rect
        style="opacity:1;fill:#ffffe9;fill-opacity:1;stroke:#000000;stroke-width:0.30819738;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect4854"
@@ -231,13 +246,13 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px">incoming edits</tspan></text>
     <text
        id="text5679"
-       y="124.10017"
-       x="35.036316"
+       y="124.66713"
+       x="32.390484"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:125%;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"><tspan
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px"
-         y="124.10017"
-         x="35.036316"
+         y="124.66713"
+         x="32.390484"
          id="tspan5677"
          sodipodi:role="line">incoming edits</tspan></text>
     <text
@@ -254,12 +269,12 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:125%;font-family:'Bitstream Vera Sans Mono';-inkscape-font-specification:'Bitstream Vera Sans Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="70.118637"
+       x="71.706139"
        y="124.41525"
        id="text6061"><tspan
          sodipodi:role="line"
          id="tspan6059"
-         x="70.118637"
+         x="71.706139"
          y="124.41525"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Bitstream Vera Sans Mono';-inkscape-font-specification:'Bitstream Vera Sans Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px">wss://...</tspan></text>
     <text
@@ -344,7 +359,7 @@
        inkscape:connector-curvature="0"
        id="path8814"
        d="M 67.822959,126.38055 V 106.30617"
-       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker8822)" />
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker8822);marker-start:url(#marker9464)" />
     <rect
        style="opacity:1;fill:none;fill-opacity:1;stroke:#c6c6c6;stroke-width:0.308;stroke-miterlimit:4;stroke-dasharray:1.232, 0.616;stroke-dashoffset:0;stroke-opacity:1"
        id="rect8818"
