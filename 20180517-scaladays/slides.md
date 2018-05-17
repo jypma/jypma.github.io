@@ -90,12 +90,13 @@ jyp@tradeshift.com
 # Writing a reactive document editor
 
 - Define things that constitute changes to a document
-  - let's call them **events** (Redux: *action*, Elm: *message*)
+  - let's call them *Edits*
 --
 .center[![doccore](editor_new.svg)]
-- Transform a *stream* of these changes directly into user interface elements
+- Transform a *stream* of edit **events** directly into user interface elements
+  - (Redux: *action*, Elm: *message*)
 - User changed anything on the screen?
-  - Emit an event, and make sure it appears on the event stream
+  - Emit an change, and see it arrive on the incoming event stream
 - Another user changed anything?
   - Automatically handled as long as it hits the event stream
 
@@ -340,6 +341,13 @@ class: center, middle
 - Reactive style increases testability and state management
 - Language: type safety and pattern matching
 - Code reuse between server and browser
+
+Try this yourself
+
+- Tradeshift APIs released end of 2018
+- Outwatch: [http://outwatch.github.io/](http://outwatch.github.io/)
+- Akka persistence: [https://doc.akka.io/docs/akka/2.5/persistence.html](https://doc.akka.io/docs/akka/2.5/persistence.html)
+- Tradeshift Reaktive: [https://github.com/Tradeshift/ts-reaktive](https://github.com/Tradeshift/ts-reaktive)
 
 ---
 

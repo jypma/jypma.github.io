@@ -14,7 +14,7 @@
    viewBox="0 0 158.13128 46.384948"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   inkscape:version="0.92.2 2405546, 2018-03-11"
    sodipodi:docname="editor_new.svg">
   <defs
      id="defs2">
@@ -301,8 +301,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.8485048"
-     inkscape:cx="240.40303"
-     inkscape:cy="129.76387"
+     inkscape:cx="264.03855"
+     inkscape:cy="86.485649"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -313,7 +313,7 @@
      inkscape:window-width="1920"
      inkscape:window-height="1016"
      inkscape:window-x="0"
-     inkscape:window-y="1467"
+     inkscape:window-y="27"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata5">
@@ -323,7 +323,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -463,7 +463,7 @@
          y="49.390617"
          x="164.68742"
          id="tspan13728"
-         sodipodi:role="line">Event</tspan></text>
+         sodipodi:role="line">Edit</tspan></text>
     <g
        id="g10251"
        transform="translate(49.582102,38.384357)">
@@ -526,13 +526,6 @@
        id="path9236"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccccc" />
-    <rect
-       y="11.370305"
-       x="89.14502"
-       height="19.220963"
-       width="50.725803"
-       id="rect9238"
-       style="fill:none;fill-opacity:1;stroke:#010101;stroke-width:0.22726147;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.90904592, 0.45452296;stroke-dashoffset:0;stroke-opacity:1" />
     <path
        sodipodi:nodetypes="ccccc"
        inkscape:connector-curvature="0"
@@ -549,7 +542,7 @@
          id="tspan9240"
          x="96.230408"
          y="22.468454"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans Italic';stroke-width:0.26458332px">Event</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans Italic';stroke-width:0.26458332px">Edit</tspan></text>
     <path
        sodipodi:nodetypes="ccccc"
        inkscape:connector-curvature="0"
@@ -566,7 +559,7 @@
          y="22.468454"
          x="111.80165"
          id="tspan9246"
-         sodipodi:role="line">Event</tspan></text>
+         sodipodi:role="line">Edit</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -577,7 +570,7 @@
          id="tspan9984"
          x="126.12589"
          y="22.468454"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans Italic';stroke-width:0.26458332px">Event</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans Italic';stroke-width:0.26458332px">Edit</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker10816)"
        d="m 139.86943,21.195489 c 2.57641,0 3.63552,4.930549 3.75517,7.005506 0.0837,1.452233 -10e-6,6.011617 -3.14895,5.94005 H 83.936397"
