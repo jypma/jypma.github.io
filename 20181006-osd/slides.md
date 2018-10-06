@@ -65,12 +65,6 @@ jan@ypmania.nl
 
 ---
 
-# Miniaturization
-
-(picture of tiny328 here)
-
----
-
 # Introducing our hero
 
 .center[![ATMega](atmega.jpg)]
@@ -83,6 +77,18 @@ jan@ypmania.nl
   - 10 μA in sleep (~30 μW)
   - 8 mA when awake (~30 mW)
   - Comparison: Raspberry Pi 2000mW, Intel Atom 16000mW
+
+---
+
+# Miniaturization
+
+- **Tiny328**: ATmega328 combined with RF12 radio module
+
+
+.floatright[![FS20](tiny328s.jpg)]
+
+![FS20](tiny328s.png)
+
 ---
 
 # Arduino: blinking an LED
@@ -394,6 +400,13 @@ Demos: [https://github.com/jypma/AvrLibDemo/tree/master/apps](https://github.com
 class: center, middle
 
 # Extra slides
+
+---
+
+# A heated development
+
+.center[![Heater](heaters.jpg)]
+
 
 ---
 
