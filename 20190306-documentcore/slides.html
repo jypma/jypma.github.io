@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title>Reactive user interfaces</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="http://lab.hakim.se/reveal-js/css/reveal.css">
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; position: absolute; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; }
+pre.numberSource a.sourceLine:empty
+  { position: absolute; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="http://lab.hakim.se/reveal-js/css/theme/solarized.css" id="theme">
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'http://lab.hakim.se/reveal-js/css/print/pdf.css' : 'http://lab.hakim.se/reveal-js/css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+  <!--[if lt IE 9]>
+  <script src="http://lab.hakim.se/reveal-js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide">
+  <h1 class="title">Reactive user interfaces</h1>
+</section>
+
+<section class="slide level1">
+
+<p>class: center, middle</p>
+</section>
+<section id="reactive-user-interfaces" class="slide level1">
+<h1>Reactive user interfaces</h1>
+<p>Because the frontend ❤ buzzwords</p>
+<p>Jan Ypma</p>
+<p>jyp@tradeshift.com</p>
+</section>
+<section id="agenda" class="slide level1">
+<h1>Agenda</h1>
+<ul>
+<li>Rationale for rethinking documents and editing</li>
+<li>Something about languages and type safety…</li>
+<li>Editing architecture</li>
+<li>Demo</li>
+</ul>
+</section>
+<section id="setting-the-scene" class="slide level1">
+<h1>Setting the scene</h1>
+<ul>
+<li><p><em>Tradeshift: A platform for business interactions</em></p></li>
+<li>UBL (Universal Business Language)
+<ul>
+<li>A set of 60+ (huge) <a href="https://cranesoftwrights.github.io/resources/Crane-UBL-2.1-Skeleton/">XSDs</a> for describing business interactions in XML</li>
+</ul></li>
+<li><p>Current systems throughput of ~10 documents per second</p></li>
+</ul>
+</section>
+<section id="documents-in-tradeshift-2017" class="slide level1">
+<h1>Documents in Tradeshift, 2017</h1>
+<ul>
+<li>Monolith backend knows about at least 6 different document formats
+<ul>
+<li>UBL, “jacksonified” JSON UBL, “official” JSON UBL, Portable (xml), Portable (JSON), Canonical</li>
+<li>These are not convertable into each other without loss</li>
+</ul></li>
+<li>Sending a document requires it to go through several message queues
+<ul>
+<li>We have trouble growing HornetQ to our size</li>
+</ul></li>
+<li>Document “validations” are hardcoded, and scattered around many different places</li>
+<li>Document types are hardcoded
+<ul>
+<li>Introducing a new document type requires changes in 15+ places</li>
+<li>As a result, existing document types have <em>very</em> varying behaviours</li>
+</ul></li>
+<li>Documents are isolated to one account
+<ul>
+<li>Sending only happens once, and as an actual copy</li>
+</ul></li>
+</ul>
+</section>
+<section id="documents-in-tradeshift-2020" class="slide level1">
+<h1>Documents in Tradeshift, 2020</h1>
+<ul>
+<li>Pipeline can send 100s of documents per second, and can scale to 1000s</li>
+<li>Format conversions are well-defined and isolated</li>
+<li>New document types and validations can be introduced by anyone <em>on the Tradeshift network</em></li>
+<li>People can collaborate on documents in real-time, across legal regions</li>
+</ul>
+</section>
+<section id="event-journal" class="slide level1">
+<h1>Event journal</h1>
+<p>.center[<img data-src="journal.svg" alt="doccore" />]</p>
+<ul>
+<li>Real-time collaboration requires delta updates</li>
+<li>No “replace content” API
+<ul>
+<li>Instead, all edits must be saved as incremental changes</li>
+<li>Edits appear on the event stream</li>
+</ul></li>
+</ul>
+</section>
+<section id="writing-a-document-editor" class="slide level1">
+<h1>Writing a document editor</h1>
+<ul>
+<li><p>Traditionally .center[<img data-src="editor_old.svg" alt="doccore" />]</p>
+<ul>
+<li>Read the whole UBL XML document</li>
+<li>Transform it into a JSON variant</li>
+<li>Transform it into an in-memory structure</li>
+<li>Transform it into user interface elements</li>
+</ul></li>
+<li>User changed anything on the screen?
+<ul>
+<li>Do the above in reverse</li>
+</ul></li>
+<li>Another user changed anything?
+<ul>
+<li>Repeat the whole flow again</li>
+</ul></li>
+</ul>
+</section>
+<section id="writing-a-reactive-document-editor" class="slide level1">
+<h1>Writing a reactive document editor</h1>
+<ul>
+<li>Define things that constitute changes to a document
+<ul>
+<li><h2 id="lets-call-them-events-redux-action-elm-message">let’s call them <strong>events</strong> (Redux: <em>action</em>, Elm: <em>message</em>)</h2>
+.center[<img data-src="editor_new.svg" alt="doccore" />]</li>
+</ul></li>
+<li>Transform a <em>stream</em> of these changes directly into user interface elements</li>
+<li>User changed anything on the screen?
+<ul>
+<li>Emit an event, and make sure it appears on the event stream</li>
+</ul></li>
+<li>Another user changed anything?
+<ul>
+<li>Automatically handled as long as it hits the event stream</li>
+</ul></li>
+</ul>
+</section>
+<section id="intermezzo" class="slide level1">
+<h1>Intermezzo</h1>
+<p>What does this JavaScript do?</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode scala"><code class="sourceCode scala"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">var</span> xhr = <span class="kw">new</span> <span class="fu">XMLHttpRequest</span>()</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">xhr.<span class="fu">open</span>(<span class="st">&quot;GET&quot;</span>,</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  <span class="st">&quot;https://api.twitter.com/1.1/search/&quot;</span> +</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="st">&quot;tweets.json?q=%23javascript&quot;</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">)</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">xhr.<span class="fu">onload</span> = (e: Event) =&gt; {</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">  <span class="kw">if</span> (xhr.<span class="fu">status</span> == <span class="dv">200</span>) {</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">    <span class="kw">var</span> r = JSON.<span class="fu">parse</span>(xhr.<span class="fu">responseTest</span>)</a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">    $(<span class="st">&quot;#tweets&quot;</span>).<span class="fu">html</span>(<span class="fu">parseTweets</span>(r))</a>
+<a class="sourceLine" id="cb1-10" data-line-number="10">  }</a>
+<a class="sourceLine" id="cb1-11" data-line-number="11">}</a>
+<a class="sourceLine" id="cb1-12" data-line-number="12">xhr.<span class="fu">send</span>()</a></code></pre></div>
+<p>.smallright[_ * 2016, Otto Chrons, Scala.js for large and complex frontend apps_]</p>
+</section>
+<section id="intermezzo-1" class="slide level1">
+<h1>Intermezzo</h1>
+<p>Is this really JavaScript? Look again!</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode scala"><code class="sourceCode scala"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">var</span> xhr = <span class="kw">new</span> <span class="fu">XMLHttpRequest</span>()</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">xhr.<span class="fu">open</span>(<span class="st">&quot;GET&quot;</span>,</a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">  <span class="st">&quot;https://api.twitter.com/1.1/search/&quot;</span> +</a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">  <span class="st">&quot;tweets.json?q=%23javascript&quot;</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">)</a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">*xhr.<span class="fu">onload</span> = (e: Event) =&gt; {</a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">  <span class="kw">if</span> (xhr.<span class="fu">status</span> == <span class="dv">200</span>) {</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">    <span class="kw">var</span> r = JSON.<span class="fu">parse</span>(xhr.<span class="fu">responseTest</span>)</a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">    $(<span class="st">&quot;#tweets&quot;</span>).<span class="fu">html</span>(<span class="fu">parseTweets</span>(r))</a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">  }</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">}</a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">xhr.<span class="fu">send</span>()</a></code></pre></div>
+<p>This is fully type-safe Scala code.</p>
+</section>
+<section id="what-is-scalajs" class="slide level1">
+<h1>What is ScalaJS?</h1>
+<ul>
+<li>Write Scala, compile to JavaScript, run in browser or NodeJS</li>
+<li>Supports 100% of Scala language</li>
+<li>Straightforward interop with JavaScript (even dynamic typing)</li>
+<li>As performant as hand-written JavaScript</li>
+<li>Generated JS code is “small enough”
+<ul>
+<li>Our PoC: 1.6MB (that’s including ProtoBuf generated classes, full CLDR, streams library, everything).</li>
+</ul></li>
+<li>Fast edit-compile-run cycle</li>
+<li>Only a language, not an architecture</li>
+</ul>
+</section>
+<section id="why-a-better-javascript" class="slide level1">
+<h1>Why a better JavaScript?</h1>
+<ul>
+<li>Types: testability, refactoring, discoverability</li>
+<li>More modular and expressive code</li>
+<li>One language across client and server</li>
+<li>Tool-friendly and better IDE support</li>
+</ul>
+</section>
+<section id="state-management" class="slide level1">
+<h1>State management</h1>
+<figure>
+<img data-src="edit-pipeline-with-output.svg" alt="state" /><figcaption>state</figcaption>
+</figure>
+<ul>
+<li>Our <strong>Event</strong> is <code>UBLDocumentEdit</code>, a single edit to a document</li>
+<li>Define intermediate <a href="https://github.com/Tradeshift/document-editor/blob/master/data/src/main/scala/com/tradeshift/documents/state/Invoice.scala#L18">DTO classes</a> that holds our on-screen state
+<ul>
+<li>Immutable to make testing easier</li>
+<li>Returns updated instance as result of event</li>
+<li><a href="https://github.com/Tradeshift/document-editor/blob/master/data/src/test/scala/com/tradeshift/documents/state/InvoiceSpec.scala#L30">Unit-testable</a> outside of reactive framework</li>
+</ul></li>
+<li>State classes map to (virtual) DOM, <a href="https://github.com/Tradeshift/document-editor/blob/master/frontend/src/main/scala/com/tradeshift/documents/invoice/LineComponent.scala#L128"><code>example render() function</code></a></li>
+</ul>
+</section>
+<section class="slide level1">
+
+<p>class: center, middle</p>
+</section>
+<section id="demo" class="slide level1">
+<h1>Demo</h1>
+</section>
+<section id="a-few-words-about-performance" class="slide level1">
+<h1>A few words about performance</h1>
+<ul>
+<li>500 events render in 10ms</li>
+<li>Cassandra ordering</li>
+<li>Protobuf deserialization</li>
+<li>Snapshots</li>
+</ul>
+</section>
+<section id="choosing-scalajs-for-this-application" class="slide level1">
+<h1>Choosing ScalaJS for this application</h1>
+<ul>
+<li>Not the first choice
+<ul>
+<li><em>React + Redux + Typescript</em>: not an obvious fit, not full type safety</li>
+<li><em>React + Redux (plain JS)</em>: Too verbose code (e.g. event matching)</li>
+<li><em>Elm</em>: Small developer community, maturity</li>
+</ul></li>
+<li>But a very nice fit
+<ul>
+<li>Very mature language and type system</li>
+<li>Built-in immutability, futures, pattern matching</li>
+<li>Surprisingly big community</li>
+</ul></li>
+</ul>
+</section>
+<section id="conclusion" class="slide level1">
+<h1>Conclusion</h1>
+<ul>
+<li>Real-time collaboration: working</li>
+<li>Reactive style increases testability and state management</li>
+<li>Language: type safety and pattern matching</li>
+<li>Code reuse between server and browser</li>
+</ul>
+</section>
+<section id="extra-slides" class="slide level1">
+<h1>Extra slides</h1>
+</section>
+<section id="document-core-architecture" class="slide level1">
+<h1>Document-core architecture</h1>
+<p>.center[<img data-src="doccore.svg" alt="doccore" />]</p>
+<ul>
+<li><strong>document-core</strong> : storage, access control, legal state, regionality
+<ul>
+<li>Plugins listen to its event journals and call back</li>
+</ul></li>
+<li><strong>document type plugins</strong> : manage XSD for a particular type of document</li>
+<li><strong>validator plugins</strong> : contribute to decide whether the legal state is OK to change to “sent”</li>
+<li><strong>augmentor plugins</strong> : contribute additional edits whenever the document is changed (e.g. totals)</li>
+</ul>
+</section>
+<section id="document-core-pipeline" class="slide level1">
+<h1>Document-core pipeline</h1>
+<p>.floatright[<img data-src="pipeline.svg" alt="pipeline" />]</p>
+<ul>
+<li>Documents are not copied
+<ul>
+<li>Sender and receiver use the same UUID</li>
+</ul></li>
+<li>Instead, document legal state is maintained
+<ul>
+<li><strong>Draft</strong>: people with write access can edit the document. Validation plugins contribute to whether the document is valid for sending or not</li>
+<li><strong>Sent</strong>: document was valid, and now has legal status. In addition, receiver gets access (in default scenario)</li>
+</ul></li>
+<li>No way to undo sending</li>
+<li>No hard deletions (except for “wipe account” scenarios)</li>
+</ul>
+</section>
+<section id="pluggable-document-types" class="slide level1">
+<h1>Pluggable document types</h1>
+<ul>
+<li>What’s the big deal?
+<ul>
+<li>Tradeshift Platform doesn’t want to OK every new doc type</li>
+<li>Allow teams, integrators, users to experiment</li>
+</ul></li>
+<li>But we do want <em>some</em> say on what’s stored as a document
+<ul>
+<li>Pipeline implies knowing a <em>sender</em> and <em>receiver</em></li>
+<li>Real-time editing needs common primitive building blocks</li>
+</ul></li>
+<li>UBL to the rescue: pluggable document types can use components from the following UBL namespaces, and group them into new aggregates
+<ul>
+<li><code>CommonAggregateComponents-2</code></li>
+<li><code>CommonBasicComponents-2</code></li>
+<li><code>CommonExtensionComponents-2</code></li>
+<li><code>QualifiedDataTypes-2</code></li>
+<li><code>UnqualifiedDataTypes-2</code></li>
+<li>(and a few others)</li>
+</ul></li>
+<li>Document type plugin uploads an XSD to <code>document-core</code></li>
+<li>XSDs are identified by their namespace
+<ul>
+<li><code>xsd:annotation</code> indicating what’s the sender and receiver</li>
+</ul></li>
+</ul>
+</section>
+<section id="multiple-regions" class="slide level1">
+<h1>Multiple regions</h1>
+<p>.center[<img data-src="regions.svg" alt="doccore" />]</p>
+<ul>
+<li>Each document maintains a set of regions it is visible to
+<ul>
+<li>Granting an off-region user access to the document adds to this list</li>
+</ul></li>
+<li>Only on the “home” region can a document be written to (edited)</li>
+<li>All other regions receive read-only copies of events</li>
+</ul>
+</section>
+<section class="slide level1">
+
+<pre><code>curl -v -X POST \
+         -H &#39;X-Tradeshift-ActorId: 784cfacd-8e63-4a08-b823-2c094aaf0f0c&#39; \
+         -H &#39;X-Tradeshift-TenantId: a0b6e3f6-54e9-4bc1-bd82-f088466acee4&#39; \
+         -H &#39;Content-Type:application/x-vnd.tradeshift.TSUBL&#39; \
+         -d @document-core-server/src/test/resources/smallubl.xml \
+         http://localhost:8865/documents
+         
+curl -v \
+         -H &#39;X-Tradeshift-ActorId: 784cfacd-8e63-4a08-b823-2c094aaf0f0c&#39; \
+         -H &#39;X-Tradeshift-TenantId: a0b6e3f6-54e9-4bc1-bd82-f088466acee4&#39; \
+         http://localhost:8865/documents/3eaa4f97-1080-4db0-862d-7c810ebf8031 \
+         | xmllint --format -
+
+http://localhost:8080/documents/3eaa4f97-1080-4db0-862d-7c810ebf8031
+
+172.17.0.83</code></pre>
+</section>
+    </div>
+  </div>
+
+  <script src="http://lab.hakim.se/reveal-js/lib/js/head.min.js"></script>
+  <script src="http://lab.hakim.se/reveal-js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Push each slide change to the browser history
+        history: true,
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'http://lab.hakim.se/reveal-js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'http://lab.hakim.se/reveal-js/plugin/zoom-js/zoom.js', async: true },
+          { src: 'http://lab.hakim.se/reveal-js/plugin/notes/notes.js', async: true }
+        ]
+      });
+    </script>
+    </body>
+</html>
