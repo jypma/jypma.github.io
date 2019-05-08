@@ -6,7 +6,9 @@ Building a reactive multi-user document editor in ScalaJS
 
 Jan Ypma
 
-jyp@tradeshift.com
+`jyp@tradeshift.com`
+
+Slides: [http://jypma.github.io](http://jypma.github.io)
 
 ---
 
@@ -90,7 +92,7 @@ jyp@tradeshift.com
 
 - Define things that constitute changes to a document
   - let's call them *Edits*
---
+
 .center[![doccore](editor_new.svg)]
 - Transform a *stream* of edit **events** directly into user interface elements
   - (Redux: *action*, Elm: *message*)
@@ -204,9 +206,9 @@ _Replace `InvoiceLine/Item/Name`, keep the rest:_
 ```
 ---
 
-# Intermezzo
+# A ScalaJS example script
 
-What does this JavaScript do?
+Or is this JavaScript?
 ```scala
 var xhr = new XMLHttpRequest()
 xhr.open("GET",
@@ -227,9 +229,9 @@ xhr.send()
 
 ---
 
-# Intermezzo
+# A ScalaJS example script
 
-Is this really JavaScript? Look again!
+Or is this JavaScript? Look again!
 ```scala
 var xhr = new XMLHttpRequest()
 xhr.open("GET",
@@ -344,6 +346,10 @@ Try this yourself
 - Outwatch: [http://outwatch.github.io/](http://outwatch.github.io/)
 - Akka persistence: [https://doc.akka.io/docs/akka/2.5/persistence.html](https://doc.akka.io/docs/akka/2.5/persistence.html)
 - Tradeshift Reaktive: [https://github.com/Tradeshift/ts-reaktive](https://github.com/Tradeshift/ts-reaktive)
+
+**We're hiring!**
+
+Find Tradeshift online, or `jyp@tradeshift.com`
 
 ---
 

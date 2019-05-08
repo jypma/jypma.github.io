@@ -14,7 +14,7 @@
    viewBox="0 0 184.88144 102.12937"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.2 2405546, 2018-03-11"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"
    sodipodi:docname="journal.svg"
    style="enable-background:new"
    inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"
@@ -171,20 +171,22 @@
        x="71.059532"
        y="86.278259"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="76.351189"
-       y="97.239571"
+       x="81.429306"
+       y="93.765068"
        id="text819"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          sodipodi:role="line"
-         id="tspan817"
-         x="76.351189"
-         y="97.239571"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';stroke-width:0.26458332px">Document-core</tspan></text>
+         x="81.429306"
+         y="93.765068"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';stroke-width:0.26458332px"
+         id="tspan1020">Tradeshift</tspan></text>
     <rect
        style="opacity:1;fill:#edf1f7;fill-opacity:1;stroke:#0b0e36;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1069"
@@ -194,7 +196,8 @@
        y="61.763802"
        ry="0"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:4.18041658px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -202,7 +205,8 @@
        y="65.721336"
        id="text819-4"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          sodipodi:role="line"
          x="118.41677"
          y="65.721336"
@@ -230,7 +234,8 @@
        y="54.077496"
        id="text819-4-1"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          sodipodi:role="line"
          x="123.53149"
          y="63.441265"
@@ -245,7 +250,8 @@
        id="rect4515"
        style="fill:#cce3e8;fill-opacity:1;stroke:#787878;stroke-width:0.56435621;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <path
        sodipodi:nodetypes="csc"
        inkscape:connector-curvature="0"
@@ -253,7 +259,8 @@
        d="m 82.782505,113.99433 c -1e-5,1.61519 -4.65371,2.92456 -10.39434,2.92456 -5.74063,0 -10.39434,-1.30937 -10.39435,-2.92456"
        style="fill:#cce3e8;fill-opacity:1;stroke:#787878;stroke-width:0.61573702;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <ellipse
        ry="2.4568453"
        rx="10.394345"
@@ -262,7 +269,8 @@
        id="path4510"
        style="fill:#cce3e8;fill-opacity:1;stroke:#787878;stroke-width:0.56435621;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -270,7 +278,8 @@
        y="139.36563"
        id="text819-4-0"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          sodipodi:role="line"
          x="119.04202"
          y="148.7294"
@@ -285,7 +294,8 @@
        id="rect1071"
        style="opacity:1;fill:#edf1f7;fill-opacity:1;stroke:#0b0e36;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        id="text1032"
        y="87.637444"
@@ -293,7 +303,8 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:4.18041658px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          id="tspan1030"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:4.18041658px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px"
          y="87.637444"
@@ -313,7 +324,8 @@
        id="rect1073"
        style="opacity:1;fill:#edf1f7;fill-opacity:1;stroke:#0b0e36;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <rect
        style="fill:#eeedd4;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect3817"
@@ -322,7 +334,8 @@
        x="121.47977"
        y="132.63242"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -330,7 +343,8 @@
        y="137.71056"
        id="text3821"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          sodipodi:role="line"
          id="tspan3819"
          x="127.89432"
@@ -344,7 +358,8 @@
        x="121.47977"
        y="140.11595"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -352,7 +367,8 @@
        y="145.19409"
        id="text3821-3"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          sodipodi:role="line"
          id="tspan3819-3"
          x="127.89432"
@@ -366,7 +382,8 @@
        x="121.47977"
        y="147.59949"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -374,7 +391,8 @@
        y="152.67761"
        id="text3821-0"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          sodipodi:role="line"
          id="tspan3819-4"
          x="127.89432"
@@ -386,14 +404,16 @@
        id="path3889"
        inkscape:connector-curvature="0"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 138.05032,155.35038 v 3.4745"
        id="path3891"
        inkscape:connector-curvature="0"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        id="text1083"
        y="112.12952"
@@ -401,7 +421,8 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:4.18041658px;font-family:Sans;-inkscape-font-specification:'Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          id="tspan1081"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:4.18041658px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332px"
          y="112.12952"
@@ -430,7 +451,8 @@
        id="rect1131"
        style="fill:#eeedd4;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png" />
     <text
        id="text1135"
        y="100.31971"
@@ -438,11 +460,26 @@
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        xml:space="preserve"
        inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-ydpi="96"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:'Bitstream Vera Sans';-inkscape-font-specification:'Bitstream Vera Sans';stroke-width:0.26458332px"
          y="100.31971"
          x="127.89432"
          id="tspan1133"
          sodipodi:role="line">Edited</tspan></text>
+    <text
+       inkscape:export-ydpi="96"
+       inkscape:export-xdpi="96"
+       id="text1027"
+       y="98.794846"
+       x="80.360229"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       xml:space="preserve"
+       inkscape:export-filename="/home/jan/workspace/jypma.github.io/20180517-scaladays/journal.svg.png"><tspan
+         id="tspan1025"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';stroke-width:0.26458332px"
+         y="98.794846"
+         x="80.360229"
+         sodipodi:role="line">Documents</tspan></text>
   </g>
 </svg>
