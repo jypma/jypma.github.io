@@ -280,8 +280,9 @@ This is fully type-safe Scala code.
 
 .center[![arch](editor_arch.svg.png)]
 
-- Backend core system `document-core` has journal of initial uploads, edits, and metadata
+- Tradeshift Documents backend system has a journal of initial uploads, edits, and metadata
 - `document-editor` does server side rendering and event security isolation
+- `totals-augmentor` submits augmentations updating the invoice totals after edits
 
 ---
 
