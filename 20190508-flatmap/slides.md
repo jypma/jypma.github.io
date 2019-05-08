@@ -278,7 +278,7 @@ This is fully type-safe Scala code.
 
 # Editor architecture
 
-.center[![arch](editor_arch.svg1.png)]
+.center[![arch](editor_arch.svg.png)]
 
 - Backend core system `document-core` has journal of initial uploads, edits, and metadata
 - `document-editor` does server side rendering and event security isolation
