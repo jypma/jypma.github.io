@@ -65,10 +65,9 @@ Slides: [http://jypma.github.io](http://jypma.github.io)
 - Transform a *stream* of edit **events** directly into user interface elements
   - (Redux: *action*, Elm: *message*)
 - User changed anything on the screen?
-  - Emit an change, and see it arrive on the incoming event stream
+  - Emit a change, and see it arrive on the incoming event stream
 - Another user changed anything?
   - Automatically handled as long as it hits the event stream
-
 
 ---
 
@@ -91,7 +90,8 @@ class: center, middle
 # Next steps
 
 - Currently in production
-  - `<AttachedDocument>`
+  - Full support for all 81 document types in UBL 2.2
+  - `<AttachedDocument>` integrated in collaboration panel
 
 - Being developed
   - `<RequestForQuotation>` (from requisition/basket)
