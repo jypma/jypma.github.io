@@ -98,6 +98,7 @@ class: center, middle
   - Migrate `<Requisition>` (purchase request)
   - Questionnaires
   - Migrate `<ApplicationResponse>`
+  - API developer's guide (draft available on request)
 
 - API docs:  [https://api.tradeshift.com/tradeshift/rest/external/documents/v2/_docs/http.html](https://api.tradeshift.com/tradeshift/rest/external/documents/v2/_docs/http.html)
 
