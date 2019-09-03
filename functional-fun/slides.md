@@ -283,3 +283,363 @@ Write an **immutable, persistent list-like** data structure that is:
 - Has an efficient operation for appending at the end
 - Has an efficient operation for prepending at the beginning
 - Has an efficient operation for iterating through the list in order
+
+---
+class: center, middle
+# Functional fun
+
+.center[![doccore](lambduh_small.jpg)]
+
+Session 2
+
+Jan Ypma
+
+`jyp@tradeshift.com`
+
+Slides: [http://jypma.github.io](http://jypma.github.io)
+
+---
+# Exercise 1: Pure functions and randomness
+
+Write a **pure** function that, given a `name` argument (and possibly other arguments), randomly invokes one of three target functions.
+
+--
+
+```scala
+def welcome1(name: String): String = ???
+def welcome2(name: String): String = ???
+def welcome3(name: String): String = ???
+
+def welcome(name: String, ???): String = ???
+```
+
+--
+
+What can we use to represent "randomness" ? What is _randomness_, really?
+
+---
+# Exercise 1: Pure functions and randomness
+
+Psuedo-random number generator:
+- Take a _seed_ (or some other entropy)
+- Generate a next random number on request
+
+--
+
+Let's formalize that in an immutable data structure:
+
+```scala
+case class RNG(entropy: ByteString) {
+  def nextLong(max: Long): (Long, RNG) = ???
+}
+```
+
+---
+# Exercise 1: Pure functions and randomness
+
+Let's use it in our function:
+
+```scala
+def welcome(name: String, random: RNG): (String, RNG) = {
+  random.nextLong(3) match {
+    case (0, r) => (welcome1(name), r)
+    case (1, r) => (welcome2(name), r)
+    case (2, r) => (welcome3(name), r)
+  }
+}
+```
+
+--
+
+Notes
+- Randomness can be represented as an immutable data structure
+  - (to some extent)
+- Code doesn't look so nice yet
+  - Let's revisit it after we deal with the "m" word.
+
+---
+# Exercise 2: Immutable data structures
+
+Write an **immutable, persistent list-like** data structure that can performantly _append_ AND _prepend_.
+
+--
+- A linked list can efficiently prepend
+- What if we postpone all appends until later?
+  - Store append operations in a function
+- From Haskell: [DiffList](http://h2.jaguarpaw.co.uk/posts/demystifying-dlist/)
+
+---
+# Exercise 2: Immutable data structures
+
+.floatleft[
+
+```scala
+class DiffList[A](make: List[A] => List[T]) {
+  // prepend: O(1)
+  def +:(a: A) = new DiffList[A] (
+    z => a :: make(z)
+  )
+
+  // append: O(1)
+  def :+(a: A) = new DiffList[A] (
+    z => make(a :: z)
+  )
+
+  // appendAll: O(1)
+  def ++=(as: DiffList[A]) = new DiffList[A] (
+    z => make(as.make(z))
+  )
+
+  // O(n)
+  def toList = make(Nil)
+}
+
+object DiffList {
+  def empty[A] = new DiffList(z => z)
+}
+```
+]
+
+--
+
+Rough sketch as to why this works:
+
+```
+empty[Int] :
+  make = z => z
+
+3 +: empty[Int] :
+  make = z => 3 :: (empty[Int].make(z))
+       = z => 3 :: z
+
+3 +: empty[Int] :+ 4 :
+  make = z => (3 +: empty[Int]).make(4 :: z)
+       = z => 3 :: 4 :: z
+```
+
+.floatleft[
+.small[source: https://blog.tmorris.net/posts/list-with-o1-cons-and-snoc-in-scala/]
+]
+
+---
+# Exercise 2: Immutable data structures
+
+Notes
+- Alternative: [Finger tree](http://andrew.gibiansky.com/blog/haskell/finger-trees/)
+
+---
+# Asynchronous programming
+
+- What is _asynchronous programming_?
+
+- Why would you want to program like that?
+  - Default Java 8 thread stack size is 1M
+  - 200 connections is 200MB memory, _just for the stacks_
+
+- But also, threads can be a performance bottleneck *
+
+.smallright[`* on compiled code]
+
+---
+
+# Latency in computer systems
+
+This is how long certain operations take for a CPU (2012, [source](https://people.eecs.berkeley.edu/~rcs/research/interactive_latency.html))
+
+```text
+L1 cache reference                           0.5 ns
+Branch mispredict                            5   ns
+L2 cache reference                           7   ns
+Mutex lock/unlock                           25   ns
+Main memory reference                      100   ns
+Compress 1K bytes with Zippy             3,000   ns
+*Context switch                          10,000   ns (if working set in L2)
+Send 1K bytes over 1 Gbps network       10,000   ns
+*Context switch                        >100,000   ns (bigger working set)
+Read 4K randomly from SSD*             150,000   ns
+Read 1 MB sequentially from memory     250,000   ns
+Round trip within same datacenter      500,000   ns
+Read 1 MB sequentially from SSD*     1,000,000   ns
+Disk seek                           10,000,000   ns
+Read 1 MB sequentially from disk    20,000,000   ns
+Send packet CA->Netherlands->CA    150,000,000   ns
+```
+
+---
+# Threads and mutexes
+
+- **Thread** : logical thread of execution, scheduled by OS scheduler
+- All threads share one memory space
+- **Mutex** : _mutually exclusive_ flag that prevents threads from accessing shared resources
+
+--
+
+Advantages
+- Close to how the hardware actually works
+- The only model generally tought in school
+- Blocking on I/O natually equivalent to "this, then this"
+
+Disadvantages
+- Expensive (~1M stack)
+- Slow to create/destroy
+- Deadlock
+
+
+---
+# Futures and callbacks
+
+- **Future** is a handle to a calculation which _eventually_ yields a result
+  - Scala, Finagle, Q.js, ... : _Future_ / _Promise_
+  - Java 8: `CompletionStage<T>` / `CompletableFuture<T>`
+- Can be chained, causing further processing (and further futures) after a stage
+  completes
+- Can be merged, waiting for several futures' results before commencing
+
+```java
+CompletionStage<Done> =
+
+http.request(GET("/tweets"))
+    .thenApply(response -> response.getBody())
+    .thenApply(body -> parseJSON(body))
+    .thenCompose(tweets ->
+        http.request(PUT("/subscribe?topic=" + tweets.getMostPopular())))
+    .thenApply(response -> Done.getInstance())
+    .whenComplete((r,x) -> {
+        if (x != null) {
+            log.error("Well something went wrong", x);
+        }
+    });
+```
+
+---
+# Futures and callbacks
+
+Advantages
+- Simple to grasp
+
+Disadvantages
+- only one value: no obvious way to stream data
+- "callback hell" (remember `RNG`?)
+- brittle error handling
+- not (easily) cancellable
+- still needs locking for shared resources (unless using a single thread)
+
+---
+# Functional asynchronous programming
+
+Functional programming:
+> Functions with *no side effects* operating on *immutable data structures*
+
+- No side effects? `http.request(...)`
+--
+
+- We need to postpone side effects: _laziness_
+
+```
+                    | eager                        | lazy
+--------------------------------------------------------------------
+synchronous         | T                            | =>T         (scala)
+                    |                              | Supplier[T] (java)
+----------------------------------------------------------------
+asyncronous         | Future[T]          (scala)   | IO[T, E]    (zio)
+                    | CompletionStage[T] (java)    | Task[T]     (scalaz 7, monix)
+```
+---
+# Programming with zio
+
+- [ZIO](https://zio.dev/docs/overview/overview_index) is a modern Scala library for asynchronous and lazy
+  computations
+
+- Defines a single type `ZIO[R, E, A]`
+  - `A` is the thing being lazilly, eventually computed
+  - `E` is the type of any error (e.g. `IOException`, just `String`, or even `Nothing`)
+  - `R` is an environment that's needed for the computation
+
+- _takes an `R` and turns it, eventually, either into an `A` or an `E`_
+
+--
+
+- Type aliases
+  - `Task[A] = ZIO[Any, Throwable, A]` is a computation with no environment requirements, and may fail with
+    any `Throwable`
+  - `IO[E,A] = ZIO[Any, E, A]` is a computation with no environment requirements
+  - `UIO[A] = ZIO[Any, Nothing, A]` is a computation that's guaranteed to never fail
+
+---
+# Programming with zio
+
+- Let's write a bit of hello world
+
+```scala
+import scalaz.zio._
+import scalaz.zio.console._
+import java.io.IOException
+
+val readName: ZIO[Any, IOException, String] = getStrLn
+val greet: ZIO[Any, IOException, Unit] = readName.flatMap(name => welcome(name))
+
+object HelloWorld extends App {
+  override def run(args: List[String]): IO[DefaultRuntime, Exception, ExitStatus] =
+    greet.map(_ => ExitStatus.ExitNow(0))
+}
+```
+
+---
+# Programming with zio
+
+- Some other interesting abstractions
+  - delaying execution:
+  ```scala
+  def sleep(duration: Duration): ZIO[Clock, Nothing, Unit]
+  ```
+  - using the current date/time:
+  ```scala
+  def currentDateTime: ZIO[Any, Nothing, OffsetDateTime]
+  ```
+  - random numbers:
+  ```scala
+  def nextLong(n: Long): ZIO[Random, Nothing, Long]
+  ```
+
+---
+# Exercise 3
+
+- Pick an asynchronous, lazy computation library for your language
+  - **Scala**: [ZIO](https://zio.dev/docs/overview/overview_index) [Monix](https://monix.io/docs/3x/eval/task.html) [Cats-effect](https://typelevel.org/cats-effect/datatypes/io.html)
+  - **Javascript**: [Fluture](https://github.com/fluture-js/Fluture)
+  - **Java**: ...didn't find anything. `Supplier<CompletionStage<T>>` perhaps. Or write-it-yourself.
+
+- Google keywords: `<language-name> asynchronous io monad`
+
+- Using your library, write a program that **recursively** searches a directory and all its files, and **counts** the
+  number of **characters**, **words**, and **lines** in those files.
+
+---
+# Exercise 4
+
+- Using the same library, write a program that recursively searches a directory and all its files for lines
+  containing a given string.
+  - Your program must be able to read from several files at once
+
+- Optional extra parts
+  - Make sure your program doesn't crash when encountering really long files with no line breaks
+  - Make sure your program doesn't hang when encountering symbolic link cycles
+  - Extend your program to find expressions spanning multiple lines
+
+---
+Notes
+```
+- Nullability
+- Lambdas vs. functions vs. methods
+  - Separation of concerns example
+- Data structure transformations
+  - Persistent data structures
+- Asynchronous programming
+  - The problems with `Future`
+  - Introducing `IO` / `Task`
+- Streams
+- Abstracting over semantics
+  - Type classes
+    - vs. interfaces (can't express empty, return type of combine)
+  - Functor, Applicative, Monad (and how to lift primitives into these) ```
+http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
