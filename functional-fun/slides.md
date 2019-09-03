@@ -285,6 +285,18 @@ Write an **immutable, persistent list-like** data structure that is:
 - Has an efficient operation for iterating through the list in order
 
 ---
+# Why are lambda functions called that way?
+
+It's... complicated. From
+[stackexchange](https://math.stackexchange.com/questions/64468/why-is-lambda-calculus-named-after-that-specific-greek-letter-why-not-rho-calc):
+
+> We end this introduction by telling what seems to be the story how the letter 'λ' was chosen to denote
+> function abstraction. In _Principia Mathematica_ the notation for the function `f` with `f(x)=2x+1` is
+> `2x̂+1`. Church originally intended to use the notation `x̂.2x+1`. The typesetter could not position the hat on
+> top of the _x_ and placed it in front of it, resulting in `∧x.2x+1`. Then another typesetter changed it into
+> `λx.2x+1`.
+
+---
 class: center, middle
 # Functional fun
 
