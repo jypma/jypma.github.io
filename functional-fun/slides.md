@@ -432,6 +432,8 @@ Notes
 
 - What is _asynchronous programming_?
 
+--
+
 - Why would you want to program like that?
   - Default Java 8 thread stack size is 1M
   - 200 connections is 200MB memory, _just for the stacks_
