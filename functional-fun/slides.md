@@ -640,6 +640,358 @@ object HelloWorld extends App {
   - Make sure your program doesn't hang when encountering symbolic link cycles
   - Extend your program to find expressions spanning multiple lines
 
+
+---
+class: center, middle
+# Functional fun
+
+.center[![comic](haskell.png)]
+
+Session 3
+
+Jan Ypma
+
+`jyp@tradeshift.com`
+
+Slides: [http://jypma.github.io](http://jypma.github.io)
+
+---
+# Exercise 3
+
+Let's define a skeleton for our ZIO application.
+```scala
+object MyApp extends App {
+  type Error = String
+
+  case class Counters(chars: Long = 0, words: Long = 0, lines: Long = 0) {
+    def +(b: Counters) = Counters(chars + b.chars, words + b.words, lines + b.lines)
+  }
+  object Counters {
+    val zero = Counters()
+  }
+
+  def run(args: List[String]) = myAppLogic.fold(_ => 1, _ => 0)
+
+  val myAppLogic =
+    for {
+      result <- listAndExpand(Set(Paths.get("").toAbsolutePath()))
+      counts <- IO.sequence(result.map(count))
+      count = counts.foldLeft(Counters.zero)(_ + _)
+      _    <- putStrLn(s"Bytes: ${count.chars}")
+    } yield ()
+
+  def listAndExpand(needToList: Set[Path]): IO[Error, Set[Path]] = ???
+
+  def count(file: Path): IO[Error, Counters] = ???
+}
+```
+
+---
+# Exercise 3
+
+Write a method to list files, and then iteratively expand listing new directories.
+```scala
+  def list(location: Path): IO[Error, List[Path]] = {
+    IO {
+      Files.newDirectoryStream(location).asScala.map(_.toAbsolutePath()).toList
+    }.catchAll {
+      case x: IOException => IO.fail(x.getMessage())
+      case x => IO.fail(s"Unexpected error: $x")
+    }
+  }
+
+  def listAndExpand(needToList: Set[Path], seen: Set[Path] = Set.empty): IO[Error, Set[Path]] = {
+    for {
+      content <- IO.sequence(needToList.map(list))
+      newlySeen = content.flatten.toSet
+      nowSeen = seen ++ needToList ++ newlySeen
+      newDirs = newlySeen.filter(_.toFile().isDirectory()) -- seen -- needToList
+      result <- if (newDirs.isEmpty)
+        IO.succeed(nowSeen)
+      else
+        listAndExpand(newDirs, nowSeen)
+    } yield result
+  }
+```
+---
+# Exercise 3
+
+Write a method to count a file. (incomplete)
+
+```scala
+  def count(file: Path): IO[Error, Counters] = {
+    IO.succeed(Counters(chars = file.toFile().length())) // .length() doesn't throw
+  }
+```
+
+---
+# Contextual chains
+
+- We have a micro-service architecture, _very_ well distributed
+
+```js
+function sayHello(userId) {
+    var name = getName(userId);
+    var country = getCountry(userId);
+    return greet("Hello " + name " from " + country);
+}
+```
+
+- However, for some users we don't have their name and/or country. What to do?
+
+---
+
+# Contextual chains
+
+- So, let's put in some checks
+
+```js
+function sayHello(userId) {
+    var name = getName(userId);
+    if (name !== undefined && name !== null) {
+        var country = getCountry(userId);
+        if (country !== undefined && country != null) {
+            return greet("Hello " + name " from " + country);
+        } else {
+          return undefined;
+        }
+    } else {
+        return undefined;
+    }
+}
+```
+
+- There are two problems with this code
+
+--
+
+    1. It's verbose, repeating similar checks
+    2. It's mixing contextual logic (`!== undefined`) with functional logic
+
+- Solutions?
+
+---
+# Potentially-absent values
+
+- Most languages these days have a type for a "potentially absent" value, that's richer to use than just `null`
+  - Agda, Haskell, Idris: **`Maybe`**
+  - OCaml, Rust, Scala, ML, Kotlin: **`Option`**
+  - Java, Swift: **`Optional`**
+
+--
+- Let's switch on some type safety (_Java_), so we can read along
+
+```java
+Optional<String> sayHello(String userId) {
+  Optional<String> name = getName(userId);
+  if (name.isDefined()) {
+    Optional<String> country = getCountry(userId);
+    if (country.isDefined()) {
+      return greet("Hello " + name.get() + " from " + country.get());
+    } else {
+      return Optional.empty();
+    }
+  } else {
+    return Optional.empty();
+  }
+}
+```
+
+- Well that's not much better. Let's try to re-write this.
+
+---
+# Potentially-absent values
+
+- Two important methods in `Optional<T>` (simplified):
+```java
+static <T> Optional<T> of(T value);
+<U> Optional<U> flatMap(Function<T, Optional<U>> f);
+```
+
+- Let's make use of `flatMap`
+```java
+    Optional<String> sayHello(String userId) {
+        return getName(userId).flatMap(name ->
+            getCountry(userId).flatMap(country ->
+                greet("Hello " + name + " from " + country);
+            )
+        )
+    }
+```
+
+---
+# Capturing failure
+
+- That was nice. But it turns out that our "Name" microservice was written in Ruby, and fails a lot. We'd like to capture those failures.
+  - But `Optional` only captures absence of values.
+
+--
+
+- *Scala*, *Haskell*, *Rust*, ...: `Either`, which captures either
+  - an **error** (conventionally called `Left`), or
+  - a **success** (conventionally called `Right`)
+
+---
+# Capturing failure
+
+- Let's use this in some Scala code
+
+```scala
+    def sayHello(userId: String): Either[ServiceError, String] = {
+      getName(userId).flatMap { name =>
+        getCountry(userId).flatMap { country =>
+          greet("Hello " + name + " from " country)
+        }
+      }
+    }
+```
+
+- Hey, that looks remarkably similar to the `Optional` example earlier.
+
+---
+# Re-visiting futures
+
+- Say that in fact our service calls can be written asynchronously, e.g. using
+  [zio](https://github.com/zio/zio)
+
+```scala
+    def sayHello(userId: String): IO[ServiceError, String] = {
+      getName(userId).flatMap { name =>
+        getCountry(userId).flatMap { country =>
+          greet("Hello " + name + " from " country)
+        }
+      }
+    }
+```
+
+- Notice a pattern yet?
+
+---
+# Monadic syntax
+
+- It turns out, there a lot of "contextual" types `C`, that can all be defined using two operations
+  - `unit` : `T => C[T]`
+  - `flatMap` (or `bind`): `(C[T], (T => C[U])) => C[U]`
+- We call a type `C` that can define these operations a **Monad** (if they uphold a few
+  [laws](https://miklos-martin.github.io/learn/fp/2016/03/10/monad-laws-for-regular-developers.html)).
+
+  (There's often also `map`, but this can be derived from `bind` and `flatMap`).
+
+- Dealing with monadic chains is so common, that languages have added special features that for that.
+
+---
+# Monadic syntax
+
+- **Haskell**: `do` syntax (for types that are `Monoid`)
+
+```hk
+nameDo :: IO ()
+nameDo = do putStr "What is your first name? "
+         first <- getLine
+         putStr "And your last name? "
+         last <- getLine
+         let full = first ++ " " ++ last
+         in putStrLn ("Pleased to meet you, " ++ full ++ "!")
+```
+
+---
+# Monadic syntax
+
+- **Rust**: `async` / `await` (this is specific to rust's `Future[T]` concept, unfortunately not for any Monoid)
+
+```rust
+async fn sayHello(userId: str) -> str {   // actual return type is Future<Output = str>
+  let name = getName(userId).await;
+  let country = getCountry(userId).await;
+  return greet("Hello " + name + " from " + country);
+}
+```
+
+---
+# Monadic syntax
+
+- **Scala**: `for` comprehension (on any type that has `flatMap`, `map` and/or `filter`)
+
+```scala
+val input: List[Int] = 3 :: 2 :: 1 :: Nil
+def twice(i: Int): List[Int] = i :: i :: Nil
+val output: List[Int] = for {
+  i <- input
+  j <- twice(i)
+} yield i * j
+```
+
+Let's try to write our `greet` that way.
+
+--
+```scala
+def sayHello(userId: String): Either[ServiceError, String] = {
+  for {
+    name <- getName(userId)
+    country <- getCountry(userId)
+    msg <- greet("Hello " + name + " from " + country)
+  } yield msg
+}
+```
+
+---
+# Abstracting from the monad
+
+- How can we make our `sayHello` method independent even of `Either`?
+
+--
+- We need an abstraction
+  - _a type that can construct instances (`unit`) and has a member operation (`flatMap`)_
+
+- Can't have simple `interface` or `trait` with `Monad<T>` since that only describes members
+    - Bye-bye, Java
+
+--
+- Haskell: _type classes_
+
+```haskell
+sayHello :: Monad m => m String -> m String
+```
+
+---
+# Abstracting from the monad
+
+- Scala: [_implicit parameters_](https://docs.scala-lang.org/tour/implicit-parameters.html) and [_type
+  constructors_](https://typelevel.org/blog/2016/08/21/hkts-moving-forward.html)
+
+--
+
+Let's revisit our `Either` definition
+```scala
+def sayHello(userId: String): Either[ServiceError, String] = ???
+```
+
+Replace `Either` with a type `M` that has one type parameter, and an implicit argument proving `M` is a `Monad`
+```scala
+def sayHello[M[_]](userId: M[String])(implicit monad: Monad[M]): M[String] = ???
+
+trait Monad[M[_]] {
+  def unit[A](value: A): M[A]
+  def bind[A,B](m: M[A])(f: A => M[B]): M[B]
+}
+```
+
+Now we can implement `Monad` for e.g. Scala's own `Option`:
+```scala
+implicit val OptionMonad = new Monad[Option] {
+  def unit[A](value: A) = Some(a)
+  def bind[A,B](m: Option[A])(f: A => Option[B]) = m.flatMap(f)
+}
+```
+
+---
+# Exercise 5
+
+- Find a piece of code (or several) from the Tradeshift systems you're working on, which
+  - Makes more than one database (or REST) calls
+
+- And rewrite it in a fully functional style.
+
 ---
 Notes
 ```
