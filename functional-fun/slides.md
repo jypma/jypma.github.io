@@ -996,7 +996,9 @@ implicit val OptionMonad = new Monad[Option] {
 class: center, middle
 # Functional fun
 
-.center[![comic](json_small.jpg)]
+.
+
+.center[![comic](multi.jpg)]
 
 .
 
