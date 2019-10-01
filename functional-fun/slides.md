@@ -1284,6 +1284,62 @@ proxy.tell(new ChatCommand.PostMessage(
 ```
 
 ---
+# Hello, pony
+
+- Classes are types, and they have member functions (`fun`).
+
+```
+class Logger
+  let _env: Env
+  let _prefix: String
+
+  new create(env: Env, prefix: String) =>
+    _env = env
+    _prefix = prefix
+
+  fun log(msg: String, delay: U32) =>
+    @sleep[I32](delay)
+    _env.out.print(_prefix + ": " + msg)
+```
+
+--
+
+- Use our class in our main method (which has to be an actor)
+
+```
+actor Main
+  new create(env: Env) =>
+    let l1 = Logger.create(env, "logger 1")
+    let l2 = Logger.create(env, "logger 2")
+
+    l1.log("one", 3)
+    l2.log("two", 1)
+    l1.log("three", 3)
+    l2.log("four", 1)
+```
+
+---
+# Hello, pony
+
+- Turning class into an actor is real simple:
+
+```
+*actor Logger
+  let _env: Env
+  let _prefix: String
+
+  new create(env: Env, prefix: String) =>
+    _env = env
+    _prefix = prefix
+
+*  be log(msg: String, delay: U32) =>
+    @sleep[I32](delay)
+    _env.out.print(_prefix + ": " + msg)
+```
+
+- Main method stays the same!
+
+---
 # Exercise 6
 
 - Write a chat application with a server-side component using actors
