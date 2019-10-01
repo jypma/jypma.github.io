@@ -1,0 +1,4 @@
+#!/bin/bash
+python3 -m http.server &
+docker run --rm -t -v `pwd`:/slides -v `pwd`:/home/user astefanutti/decktape http://10.11.12.1:8000 slides.pdf --chrome-arg=--disable-web-security
+kill $(jobs -p)
