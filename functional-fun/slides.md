@@ -993,19 +993,302 @@ implicit val OptionMonad = new Monad[Option] {
 - And rewrite it in a fully functional style.
 
 ---
-Notes
+class: center, middle
+# Functional fun
+
+.center[![comic](json_small.jpg)]
+
+.
+
+Slides: [http://jypma.github.io](http://jypma.github.io)
+
+---
+# Futures, callbacks and IO/Task
+
+Advantages
+- Simple to grasp
+
+Disadvantages
+- only one value: no obvious way to stream data
+- "callback hell"
+- brittle error handling (depending on library choices)
+- not (easily) cancellable
+- still needs locking for shared resources (unless using a single thread)
+
+---
+
+# Latency in computer systems
+
+This is how long certain operations take for a CPU (2012, [source](https://people.eecs.berkeley.edu/~rcs/research/interactive_latency.html))
+
+```text
+L1 cache reference                           0.5 ns
+Branch mispredict                            5   ns
+L2 cache reference                           7   ns
+Mutex lock/unlock                           25   ns
+Main memory reference                      100   ns
+Compress 1K bytes with Zippy             3,000   ns
+*Context switch                          10,000   ns (if working set in L2)
+Send 1K bytes over 1 Gbps network       10,000   ns
+*Context switch                        >100,000   ns (bigger working set)
+Read 4K randomly from SSD*             150,000   ns
+Read 1 MB sequentially from memory     250,000   ns
+Round trip within same datacenter      500,000   ns
+Read 1 MB sequentially from SSD*     1,000,000   ns
+Disk seek                           10,000,000   ns
+Read 1 MB sequentially from disk    20,000,000   ns
+Send packet CA->Netherlands->CA    150,000,000   ns
 ```
-- Nullability
-- Lambdas vs. functions vs. methods
-  - Separation of concerns example
-- Data structure transformations
-  - Persistent data structures
-- Asynchronous programming
-  - The problems with `Future`
-  - Introducing `IO` / `Task`
-- Streams
-- Abstracting over semantics
-  - Type classes
-    - vs. interfaces (can't express empty, return type of combine)
-  - Functor, Applicative, Monad (and how to lift primitives into these) ```
-http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html
+
+- Keep working on the same data for as long as possible
+
+- Did we actually get that with futures?
+
+---
+
+# The actor model
+
+- **Actor** is an entity that responds only to messages by
+  - sending messages to other actors
+  - creating other, child, actors
+  - adjusting its behaviour
+
+- Parent actors **supervise** their child actors, and take corrective action if they fail
+  - (not all implementations do this)
+---
+# Actors in Erlang
+
+---
+# Exercise 5
+
+- Find a piece of code (or several) from the Tradeshift systems you're working on, which
+  - Makes more than one database (or REST) calls
+
+- And rewrite it in a fully functional style.
+
+---
+# Actors in Erlang
+
+- Each actor is its own mini-process with isolated heap and growable stack
+- Actors have an explicit message loop
+- All code runs on a virtual machine
+- "Blocking" calls are allowed, but internally pre-empted and routed to worker threads
+- No types except for string, symbol, list, set, map
+- Reference counting / GC for shared binary blocks
+
+---
+# Pony: A modern approach to actors and language
+
+- Each actor is its own mini-process with isolated heap
+- Actors are scheduled implicitly
+- All code is compiled to native code. No virtual machine
+- Fully type-safe, memory-safe and data-race free (a bit like Rust on steroids)
+- Due to all this, extremely high performance
+
+---
+# Akka: actors for the JVM
+
+- *Akka* is a toolkit for writing actors in Java
+  - Actor is a normal Java class that extends `AbstractActor`
+  - Native network transparency, clustering, event sourcing, ...
+
+- **Message** is an immutable, serializable, Java class
+
+- Parent actor is the _supervisor_ of its child actors. On child actor failure, parent decides what to do:
+  - Restart child
+  - Stop child
+  - Escalate
+
+---
+
+# Actor ping pong
+
+```java
+public class PingActor extends AbstractActor {
+    private int counter = 0;
+    private ActorRef pongActor = getContext().actorOf(
+        Props.create(PongActor.class), "pongActor");
+    {
+        receive(ReceiveBuilder
+            .match(Initialize.class, msg -> {
+                log.info("In PingActor - starting ping-pong");
+                pongActor.tell("ping", getSelf());
+            })
+            .match(String.class, msg -> {
+                log.info("In PingActor - received message: {}", message);
+                counter += 1;
+                if (counter == 3) {
+                    getContext().system().shutdown();
+                } else {
+                    getSender().tell("ping", getSelf());
+                }
+            })
+            .build());
+    }
+}
+```
+
+---
+# The actor model
+
+Advantages
+- Share-nothing approach comes natural
+- Straightforward unit testing
+- Much more lightweight (100s of bytes) and performant (ForkJoinPool) than threads
+- Trivially extends to a distributed system
+- Ability to "just let it crash" in isolated areas
+
+Disadvantages
+- No obvious way to stream data
+
+---
+# Advanced akka features
+
+- Akka persistence
+- Akka remoting and akka clustering
+- Akka cluster sharding
+
+---
+# Akka persistence
+
+- Framework to do event sourcing using actors
+- Persistence plugins for levelDB, cassandra, kafka, ...
+- Each `PersistentActor` has a `String` identifier, under which events are stored
+
+```java
+public class ChatActor extends AbstractPersistentActor {
+    private final List<String> messages = new ArrayList<>();
+
+    private void postMessage(String msg) {
+        persist(msg, evt -> {
+            messages.add(msg);
+            sender().tell(Done.getInstance(), self());
+        });
+    }
+
+    private void getMessageList() {
+        sender().tell(new ArrayList<>(messages), self());
+    }
+    // ...
+}
+```
+
+---
+# Akka persistence
+
+```java
+public class ChatActor extends AbstractPersistentActor {
+  private final List<String> messages = new ArrayList<>();
+
+  private void postMessage(String msg) { /* ... */ }
+  private void getMessageList() { /* ... */ }
+
+  @Override public String persistenceId() { return "chat-1"; }
+
+  @Override public PartialFunction<Object,BoxedUnit> receiveRecover() {
+        return ReceiveBuilder
+            .match(String.class, messages::add)
+            .build();
+  }
+
+  @Override public PartialFunction<Object,BoxedUnit> receiveCommand() {
+        return ReceiveBuilder
+            .matchEquals("/list", msg -> getMessageList())
+            .match(String.class, this::postMessage)
+            .build();
+  }
+}
+```
+
+---
+
+# Akka remoting and clustering
+
+- Transparently lets actors communicate between systems
+- `ActorRef` can point to a remote actor
+- Messages must be serializable (using configurable mechanisms)
+
+```java
+    akka {
+      actor {
+        provider = "akka.remote.RemoteActorRefProvider"
+      }
+      remote {
+        enabled-transports = ["akka.remote.netty.tcp"]
+        netty.tcp {
+          hostname = "127.0.0.1"
+          port = 2552
+        }
+      }
+      cluster {
+        seed-nodes = [
+          "akka.tcp://ClusterSystem@127.0.0.1:2551",
+          "akka.tcp://ClusterSystem@127.0.0.1:2552"]
+      }
+    }
+```
+
+---
+
+# Akka cluster sharding
+
+- Dynamically distributes a group of actors across an akka cluster
+- `MessageExtractor` informs cluster sharding where a particular message should go
+
+```java
+public abstract class ChatCommand { UUID conversation; }
+
+class ChatMessageExtractor implements MessageExtractor {
+    private final int numberOfShards = 256;
+
+    @Override public String entityId(Object command) {
+        return ChatCommand.cast(command).conversation.toString();
+    }
+
+    @Override public String shardId(Object command) {
+        return String.valueOf(entityId(command).hashCode() % numberOfShards);
+    }
+
+    @Override public Object entityMessage(Object command) {
+        return command;
+    }
+}
+
+```
+
+---
+
+# Akka cluster sharding
+
+- `ShardRegion` proxy sits between client and real (remote) persistent actor
+- Persistent actor names will be their persistence id
+
+```java
+public class ChatActor extends AbstractPersistentActor {
+  // ...
+
+  @Override public String persistenceId() { return getSelf().path().name(); }
+}
+
+ActorRef proxy = ClusterSharding.get(system).start(
+            "conversations",
+            Props.create(ChatActor.class),
+            ClusterShardingSettings.create(system),
+            new MyMessageExtractor());
+
+proxy.tell(new ChatCommand.PostMessage(
+  UUID.fromString("67c67d28-4719-4bf9-bfe6-3944ed961a60"),
+  "hello!"));
+```
+
+---
+# Exercise 6
+
+- Write a chat application with a server-side component using actors
+- One actor per chat room
+- You can give it a REST interface and browser UI, or just a telnet UI (TCP socket)
+- Suggestions for languages or frameworks:
+  - Java / Scala / Clojure: [akka](https://akka.io/)
+  - Javascript: [comedy](https://github.com/untu/comedy) (down-to-earth), [nact](https://nact.io/) (but I could not figure it out)
+  - Erlang (of course)
+  - Pony (of course)
