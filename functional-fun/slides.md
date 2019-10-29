@@ -1350,3 +1350,258 @@ actor Main
   - Javascript: [comedy](https://github.com/untu/comedy) (down-to-earth), [nact](https://nact.io/) (but I could not figure it out)
   - Erlang (of course)
   - Pony (of course)
+
+---
+class: center, middle
+# Functional fun
+
+.
+
+.center[![comic](tcpjoke-sm.jpg)]
+
+.
+
+Slides: [http://jypma.github.io](http://jypma.github.io)
+
+---
+# Backpressure
+
+- Imagine an HTTP request with a very long response, that reads 1.000.000 rows from a DB
+
+*Using Threads*
+--
+
+- Just block while reading (waits for more data), and block while writing (TCP send buffer full)
+
+*Using Actors*
+- Let's have a "Request Actor" and a "Database Actor"
+  1. Request Actor messages Database Actor to requests the rows
+  2. Database Actor sends back 1.000.000 messages as fast as it can?
+--
+
+- Needs some sort of `Ack` protocol between Request Actor and Database Actor, or batching
+
+*Streams*
+- What if we could combine the advantages of asynchronous messaging and add in backpressure?
+
+---
+# Reactive streams
+
+- Stream frameworks provide abstractions over synchronicity, so it's easy to build systems with
+  **backpressure** without blocking threads.
+  - `ReactiveX`: _asynchronous programming with observable streams_
+  - `Akka streams`: _data processing in a form of data flow through an arbitrary complex graph of processing stages_
+
+- Apparently, takes a few approaches to get it "right"
+  - 2012 MS open sources Rx.Net and RxJs (now at 3.x)
+  - 2013 Reactive Streams
+  - 2014 RxJava (now at 3.x), Akka Streams
+  - 2015 Scalaz-stream (fs2)
+  - 2017 Monix streams
+  - 2019 ZIO Streams
+
+---
+# Requirements for functional programming
+
+- Immutability
+  - _Are we helped to not mutate the stream elements in transit?_
+
+- Functional re-use
+  - _Can we abstract away parts of streams into functions or objects?_
+
+- Referential transparency
+  - _If we apply the same stream operator twice, independently, do those streams yield the same result?_
+
+The above is not necessarily true for all streaming frameworks; they each fit a different programming
+paradigm.
+
+---
+
+# Introducing Akka Streams
+- `Graph` is a *blueprint* for a closed, finite network of *stages*, which communicate by streaming elements
+- `GraphStage[S <: Shape]` is one processing stage within a graph, taking elements in through zero or more *Inlets*, and emitting through *Outlets*
+- It's completely up to the stage when and how to respond to arriving elements
+- All built-in graph stages embrace _backpressure_ and _bounded processing_
+
+#### Mostly used graph stages
+- `Source[T, M]` has one outlet of type `T`
+- `Sink[T, M]` has one inlet of type `T`
+- `Flow[A, B, M]` has one inlet of type `A` and one outlet of type `B`
+- `RunnableGraph[M]` has no inlets or outlets
+
+#### Reactive streams
+- Akka is a reactive streams implementation (just like `RxJava` and others)
+- You typically don't interact in terms of _publisher_ and _subscriber_ directly
+
+---
+
+# Hello, streams
+
+```scala
+val system = ActorSystem("QuickStart")
+implicit val materializer = ActorMaterializer()
+
+val numbers: Source[Integer, NotUsed] numbers = Source.range(1, 100)
+
+val print: Sink[Integer, Future[Done]] print = Sink.foreach(i -> println(i))
+
+val done: Future[Done] = numbers.runWith(print) // (materializer)
+
+// Output:
+// 1
+// 2
+// ...
+```
+---
+
+# Stream materialization
+
+- _Graph_ is only a blueprint: nothing runs until it's given to a _materializer_, typically `ActorMaterializer`
+- All graph stages are generic in their materialized type `M`
+- Graph can be materialized (`run`, `runWith`) more than once
+
+```scala
+trait Source[T, M] {
+  // A graph which materializes into the M2 of the sink (ignoring source's M)
+  def to(sink: Sink[T,M2]): RunnableGraph[M2]
+
+  // Materializes, and returns the M of the sink (ignoring this source's M)
+  def runWith[M2](sink: Sink[T, M2])(implicit m: Materializer): M2 { ... }
+
+  // A graph which materializes into the result of applying [combine] to
+  // this source's M and the sink's M2
+  def toMat[M2, MR](sink: Sink[T,M2] sink, combine: (M,M2) => MR): RunnableGraph[MR]
+}
+
+trait RunnableGraph[M] {
+  def run(implicit m: Materializer): M;
+}
+```
+
+
+---
+
+# Reusable pieces
+
+- `Source`, `Sink` and `Flow` are all normal, immutable objects, so they're ideal to be
+   constructed in reusable factory methods:
+
+```scala
+def lineSink(filename: String): Sink[String, Future[IOResult]] = {
+  val file: Sink[String, Future[IOResult]] = FileIO.toPath(Paths.get(filename))
+
+  // Let's start with some strings
+  return Flow[String]      // Flow[String, String, NotUsed]
+
+  // Convert them into bytes (UTF-8), adding a newline
+  // We now have a Flow[String, ByteString, NotUsed]
+    .map(s => ByteString.fromString(s + "\n"))
+
+  // Send them into a file, and we want the IOResult of the
+  // FileIO sink as materialized value of our own sink
+    .toMat(file)(Keep.right())
+}
+
+numbers.runWith(lineSink("numbers.txt"))
+```
+
+---
+
+# Time-based processing
+
+```scala
+def numbers = Source.range(1, 100000000);
+
+def print: Sink[Integer, Future[Done]] = Sink.foreach(println)
+
+val done: Future[Done] = numbers
+    .throttle(1, 1.second, 1,
+              ThrottleMode.shaping)
+    .runWith(print)
+
+```
+
+- This does what you expect: print one message per second
+- No `OutOfMemoryError`, akka buffers only as needed: _backpressure_
+---
+
+# Example Sources
+- Materialize as `ActorRef`
+
+```scala
+val s: Source[T, ActorRef] = Source.actorRef(10, OverflowStrategy.fail)
+```
+
+- Materialize as reactive `Subscriber[T]`
+
+```scala
+val s: Source[T, Subscriber[T]] = Source.asSubscriber
+```
+
+- Read from a reactive `p: Publisher[T]`
+
+```scala
+val s: Source[T, NotUsed] = Source.fromPublisher(p)
+```
+
+- Emit the same element regularly
+
+```scala
+val s: Source[T, Cancellable] = Source.tick(duration, duration, element)
+```
+---
+
+# Example Sinks
+- Send to `ActorRef`
+
+```scala
+val s: Sink[T, NotUsed] = Sink.actorRef(target, "done", x => Failure(x))
+```
+
+- Materialize as reactive `Publisher[T]`
+
+```scala
+val s: Sink[T, Publisher[T]] = Sink.asPublisher(fanout = true)
+```
+
+- Materialize into a `immutable.Seq` of all elements
+
+```scala
+val s: Sink[T, Future[List[T]] = Sink.seq()
+```
+
+---
+
+# Example source and flow operators
+- Send `src: Source[String, M]` to an additional `sink: Sink[String,_]`
+
+```scala
+val s: Source[String, M] = src.alsoTo(sink)
+```
+
+- Process batches of concatenated strings, but only if coming in too fast
+
+```scala
+val s: Source[String, M] = src.batchWeighted(1000, s => s.length(), s => s) { (s1,s2) => s1 + s2 }
+```
+
+- Process 1 seconds' worth of elements at a time, but at most 100 elements
+
+```scala
+val s: Source[Seq[String], M] = src.groupedWithin(100, 1.second)
+```
+
+- Invoke a `Future` for each element, and resume with the results in order (keeping at most 10 futures in-flight)
+
+```scala
+def process(s: String): Future[Integer] = ???
+
+val s: Source[String, M] = src.mapAsync(10)(process)
+```
+
+---
+
+# Exercise 7
+
+- Revisit your `grep` and `wc` implementations from exercise 3 and 4, and see if they can be improved by
+  applying a reactive streams library.
