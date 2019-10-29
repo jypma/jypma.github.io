@@ -1364,10 +1364,16 @@ class: center, middle
 Slides: [http://jypma.github.io](http://jypma.github.io)
 
 ---
+# Exercise 6
+
+- Write a chat application with a server-side component using actors
+
+---
 # Backpressure
 
 - Imagine an HTTP request with a very long response, that reads 1.000.000 rows from a DB
 
+--
 *Using Threads*
 --
 
