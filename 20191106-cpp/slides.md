@@ -5,6 +5,7 @@ class: center, middle
 
 A journey into year-long uptimes
 
+.center[![Logo](logo.png)]
 
 Jan Ypma
 
@@ -236,11 +237,67 @@ int main() {
 ---
 # Type-safe registers
 
-TODO write about code generator and avr-libc type unsafety.
+Let's enable the "input capture noise canceller" on timer 1, by setting the `ICNC1` bit:
+```
+TCCR1A |= (1 << ICNC1);
+```
+
+--
+In Arduino, these are just numeric macros:
+```
+#define _MMIO_BYTE(mem_addr) (*(volatile uint8_t *)(mem_addr))
+#define _SFR_MEM8(mem_addr) _MMIO_BYTE(mem_addr)
+#define TCCR1A _SFR_MEM8(0x80)
+
+#define ICNC1 7
+```
+
+So we just actually wrote
+```
+  *(volatile uint8_t *)(0x80) |= (1 << 7);
+```
+
+--
+However, it turns out `ICNC1` is _actually_ bit 7 on `TCCR1B`, **not** `TCCR1A`. Oops.
+
+---
+# Type-safe registers
+
+Let's try this again:
+```
+TCCR1A |= ICNC1;
+// compile error: no match for ‘operator|=’
+TCCR1B |= ICNC1;
+// compiles fine
+```
+
+C++ operators and a bit of code generation to the rescue
+```
+using TCCR1A_t = Register8<0x80,
+          ReadWriteBit,
+          ReadWriteBit,
+          ReservedBit,
+          ReservedBit,
+          ReadWriteBit,
+          ReadWriteBit,
+          ReadWriteBit,
+          ReadWriteBit>;
+constexpr StaticRegister8<TCCR1A_t> TCCR1A = {};
+constexpr TCCR1A_t::Bit0 WGM10 = {};
+constexpr TCCR1A_t::Bit1 WGM11 = {};
+constexpr TCCR1A_t::Bit4 COM1B0 = {};
+constexpr TCCR1A_t::Bit5 COM1B1 = {};
+constexpr TCCR1A_t::Bit6 COM1A0 = {};
+constexpr TCCR1A_t::Bit7 COM1A1 = {};
+```
 
 ---
 
 # Type-safe pins
+
+- Not all pins are created equal
+  - **ATMega328**: Each pin has unique alternate functions
+  - **STM32F030**: Alternate functions can sometimes be configured, but on fixed pin(s)
 
 ```
 *auto LED = ArduinoPinD9();
@@ -299,7 +356,7 @@ _Note_: Prefer using `periodic` or `deadline` instead of `delay`.
 - Write a class instead for your app
 
 ```
-#define auto_var(name, expr) decltype(expr) name = expr  // pre-C++ 17
+#define auto_var(name, expr) decltype(expr) name = expr
 
 template<typename led_t, typename timer_t>
 class Blink {
@@ -362,8 +419,10 @@ RUN_APP(MyApp)  // declares main() and interrupt handlers
 # Continuous integration
 
 - GCC (and avr-gcc) is a particularly troubled piece of software
-  - Most major upgrades I've tried hit ICE's. 7.1.1: [81074](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81074) 9.2.1: [91925](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91925)
-  - Currently, avr-gcc 5.4.0, 7.2.0 and 8.3.0 build correctly. 9.2.1 has issues.
+  - Most major upgrades I've tried hit internal compiler errors.
+      - 7.1.1: [81074](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81074)
+      - 9.2.1: [91925](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91925)
+  - Currently, avr-gcc 5.4.0, 7.2.0 and 8.3.0 build correctly. 9.2.1 has issues, promised fixed in 9.3
 - Solution: [docker container with working version](https://github.com/jypma/avr-gcc)
 - Build `AvrLib` on Travis CI using [`Makefile`](https://github.com/jypma/AvrLib): ![Build status](https://travis-ci.org/jypma/AvrLib.svg?branch=master)
 
@@ -377,7 +436,6 @@ RUN_APP(MyApp)  // declares main() and interrupt handlers
 - Tests pay off: if devices fail, it's usually hardware
 - Streams library with Protobuf support
 - Drivers for RFM12B radio, ESP8266 in AT mode, RS-232, IR decoding, temperature sensors, and more
-
 - Future work
   - Integrate `AvrLib` into [platformio](https://platformio.org/)
   - Move to [ARM and/or Rust](https://japaric.github.io/discovery/)?
@@ -386,3 +444,4 @@ Source: [https://github.com/jypma/AvrLib/](https://github.com/jypma/AvrLib/)
 
 Demos: [https://github.com/jypma/AvrLibDemo/tree/master/apps](https://github.com/jypma/AvrLibDemo/tree/master/apps)
 
+![Logo](logo.png)
