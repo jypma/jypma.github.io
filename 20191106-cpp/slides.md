@@ -11,6 +11,8 @@ Jan Ypma
 
 jan@ypmania.nl
 
+.smallright[Slides at [jypma.github.io](jypma.github.io)]
+
 ---
 
 # Agenda
@@ -200,7 +202,7 @@ void init()
   - The core has no unit tests
 - Code basically gets written, tested on hardware, and then "don't touch it"
 - RFM12 Arduino library is a good example of the above
-- Oh, and no `Makefile` or build system of any kind
+- Oh, and no `Makefile` or build system of any kind (getting better, [platformio](https://docs.platformio.org/en/latest/tutorials/))
 
 We must be able to do better than this!
 
