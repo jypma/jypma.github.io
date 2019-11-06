@@ -32,7 +32,7 @@ jan@ypmania.nl
 
 - By day
  - Software architect at [Tradeshift](https://tradeshift.com/about/), a platform for business interactions
- - 100K+ LoC code bases running on 100+ servers
+ - 1M+ LoC code bases running on 1000+ servers
  - CI/CD, Unit testing, Integration testing, Docker
 
 - By night
